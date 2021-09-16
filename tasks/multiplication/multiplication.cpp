@@ -3,5 +3,5 @@
 #include <stdexcept>
 
 int64_t Multiply(int a, int b) {
-    return 0;
+    return a*b;
 }
