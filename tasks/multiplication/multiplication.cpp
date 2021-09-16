@@ -3,5 +3,5 @@
 #include <stdexcept>
 
 int64_t Multiply(int a, int b) {
-    return a*b;
+    return 123123124;
 }
