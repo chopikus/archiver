@@ -1,31 +1,17 @@
 #include "sort_students.h"
 
-bool DatesNotEqual(const Date& d1, const Date& d2) {
-  return (d1.day != d2.day || d1.month != d2.month || d1.year != d2.year);
-}
-
-bool CompareDates(const Date& d1, const Date& d2) {
-  return std::tie(d1.year, d1.month, d1.day) < std::tie(d2.year, d2.month, d2.day);
-}
-
 bool CompareNameFirst(const Student& first, const Student &second) {
-  if (first.last_name != second.last_name)
-    return (first.last_name < second.last_name);
-  if (first.name != second.name)
-    return (first.name < second.name);
-  if (DatesNotEqual(first.birth_date, second.birth_date))
-    return CompareDates(first.birth_date, second.birth_date);
-  return false;
+  const Date& date_first = first.birth_date;
+  const Date& date_second = second.birth_date;
+  return std::tie(first.last_name, first.name, date_first.year, date_first.month, date_first.day) <
+         std::tie(second.last_name, second.name, date_second.year, date_second.month, date_second.day); 
 }
 
 bool CompareDateFirst(const Student& first, const Student &second) {
-  if (DatesNotEqual(first.birth_date, second.birth_date))
-    return CompareDates(first.birth_date, second.birth_date);
-  if (first.last_name != second.last_name)
-    return (first.last_name < second.last_name);
-  if (first.name != second.name)
-    return (first.name < second.name);
-  return false;
+  const Date& date_first = first.birth_date;
+  const Date& date_second = second.birth_date;
+  return std::tie(date_first.year, date_first.month, date_first.day, first.last_name, first.name) < 
+         std::tie(date_second.year, date_second.month, date_second.day, second.last_name, second.name); 
 }
 
 void SortStudents(std::vector<Student>& students, SortKind sort_kind) {

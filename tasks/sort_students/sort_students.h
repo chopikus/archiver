@@ -21,14 +21,5 @@ enum class SortKind {
     Date
 };
 
-
-bool DatesNotEqual(const Date& d1, const Date& d2);
-
-bool CompareDates(const Date& d1, const Date& d2);
-
-bool CompareNameFirst(const Student& first, const Student &second);
-
-bool CompareDateFirst(const Student& first, const Student &second);
-
 void SortStudents(std::vector<Student>& students, SortKind sortKind);
 
