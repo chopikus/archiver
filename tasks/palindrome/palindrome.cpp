@@ -2,7 +2,7 @@
 
 bool IsPalindrome(const std::string& str) {
     if (str.size() <= 1)
-      return true;
+        return true;
     size_t p1 = 0;
     int64_t p2 = str.size() - 1;  // it can become -1!!
     while (p1 < str.size() && p2 >= 0) {
