@@ -13,12 +13,12 @@ size_t CountUtf8Symbols(const std::string& str) {
   size_t symbols = 0;
   while ((*c_str) != '\0') {
     uint8_t byte = *c_str;
-    c_str++;
-    symbols++;
+    ++c_str;
+    ++symbols;
     int ones_in_front = 0;
-    for (int i = 7; i >= 0; i--)  {
+    for (int i = 7; i >= 0; --i)  {
       if ((byte >> i) & 1) {
-        ones_in_front++;
+        ++ones_in_front;
       }
       else {
         break;
@@ -28,18 +28,18 @@ size_t CountUtf8Symbols(const std::string& str) {
       break;  // something has gone horribly wrong
     }
     while (ones_in_front > 1 && (*c_str) != '\0')  {
-      ones_in_front--;
-      c_str++;
+      --ones_in_front;
+      ++c_str;
     }
   }  
   return symbols;
 }
 
 void EncodeUtf8(const std::vector<uint32_t>& codepoints, std::string& str) {
-  for (size_t i = 0; i < codepoints.size(); i++) {
+  for (size_t i = 0; i < codepoints.size(); ++i) {
     uint32_t point = codepoints[i];
     uint8_t bits_needed = std::max(1, 32 - __builtin_clz(point));
-    for (uint8_t bytes = 1; bytes <= 5; bytes++) {
+    for (uint8_t bytes = 1; bytes <= 5; ++bytes) {
       uint8_t max_bits = 0;
       if (bytes == 1) {
         max_bits = 7;
@@ -53,10 +53,10 @@ void EncodeUtf8(const std::vector<uint32_t>& codepoints, std::string& str) {
         } else {
           bits_to_first_byte = (7 - bytes); 
         }
-        uint8_t first_piece = (point >> (max_bits-bits_to_first_byte));
+        uint8_t first_piece = (point >> (max_bits - bits_to_first_byte));
         uint8_t first_byte = FIRST_BYTE_START[bytes] + first_piece;
         str += first_byte;
-        for (size_t i = 2; i <= bytes; i++)
+        for (size_t i = 2; i <= bytes; ++i)
         {
           uint8_t next_piece = (point >> (6 * (bytes - i))) % (1 << 6);
           uint8_t next_byte = NEXT_BYTE_START + next_piece;
@@ -72,11 +72,11 @@ void DecodeUtf8(const std::string& str, std::vector<uint32_t>& codepoints) {
   const char* c_str = str.c_str();
   while ((*c_str) != '\0') {
     uint8_t first_symbol_byte = *c_str;
-    c_str++;
+    ++c_str;
     int ones_in_front = 0;
-    for (int i = 7; i >= 0; i--)  {
+    for (int i = 7; i >= 0; --i)  {
       if ((first_symbol_byte >> i) & 1) {
-        ones_in_front++;
+        ++ones_in_front;
       }
       else {
         break;
@@ -87,11 +87,11 @@ void DecodeUtf8(const std::string& str, std::vector<uint32_t>& codepoints) {
       break;  // something has gone horribly wrong
     }
     while (ones_in_front > 1 && (*c_str) != '\0') {
-      ones_in_front--;
+      --ones_in_front;
       code_point *= (1 << 6);
       uint8_t byte = *c_str;
       code_point += byte % (1 << 7);
-      c_str++;
+      ++c_str;
     }
     codepoints.push_back(code_point);
   }  
