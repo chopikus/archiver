@@ -25,7 +25,7 @@ size_t CountUtf8Symbols(const std::string& str) {
             }
         }
         if (ones_in_front == 1 || ones_in_front > 4) {
-            break;    // something has gone horribly wrong
+            break;  // something has gone horribly wrong
         }
         while (ones_in_front > 1 && (*c_str) != '\0') {
             --ones_in_front;
