@@ -38,10 +38,13 @@ ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
                 break;
             case EventType::CheckFailed:
                 last_check_success[student_task] = false;
+                break;
             case EventType::MergeRequestOpen:
                 ++opened_merge_requests[student_task];
+                break;
             case EventType::MergeRequestClosed:
                 --opened_merge_requests[student_task];
+                break;
             default:
                 break;
         }
