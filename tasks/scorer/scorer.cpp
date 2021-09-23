@@ -26,7 +26,7 @@ bool CompareByTime(const Event& event1, const Event& event2) {
 
 ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
     Events sorted_events = events;
-    sort(sorted_events.begin(), sorted_events.end(), compareByTime);
+    sort(sorted_events.begin(), sorted_events.end(), CompareByTime);
     for (Event event : sorted_events) {
         if (event.time > score_time) {
             break;
