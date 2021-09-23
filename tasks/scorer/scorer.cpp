@@ -28,9 +28,9 @@ ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
     Events sorted_events = events;
     sort(sorted_events.begin(), sorted_events.end(), compare_by_time);
     for (Event event : sorted_events) {
-        if (event.time > score_time)
+        if (event.time > score_time) {
             break;
-
+        }
         StudentTask student_task = StudentTask{.student_name = event.student_name, .task_name = event.task_name};
         switch (event.event_type) {
             case EventType::CheckSuccess:
@@ -47,8 +47,9 @@ ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
         }
     }
     for (auto [student_task, last_check] : last_check_success) {
-        if (last_check && opened_merge_requests[student_task] == 0)
+        if (last_check && opened_merge_requests[student_task] == 0) {
             tasks_solved_by_student[student_task.student_name].insert(student_task.task_name);
+        }
     }
     return tasks_solved_by_student;
 }
