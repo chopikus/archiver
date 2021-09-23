@@ -10,7 +10,7 @@ using std::tie;
 
 struct StudentTask {
     string student_name;
-    string task_name; 
+    string task_name;
     bool operator<(const StudentTask& another) const {
         return tie(student_name, task_name) < tie(another.student_name, another.task_name);
     }
@@ -20,7 +20,7 @@ map<StudentTask, bool> last_check_success;
 map<StudentTask, int> opened_merge_requests;
 map<string, set<string> > tasks_solved_by_student;
 
-bool compare_by_time(const Event& event1, const Event &event2) {
+bool compare_by_time(const Event& event1, const Event& event2) {
     return (event1.time < event2.time);
 }
 
@@ -47,7 +47,7 @@ ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
         }
     }
     for (auto [student_task, last_check] : last_check_success) {
-        if (last_check && opened_merge_requests[student_task] == 0) 
+        if (last_check && opened_merge_requests[student_task] == 0)
             tasks_solved_by_student[student_task.student_name].insert(student_task.task_name);
     }
     return tasks_solved_by_student;
