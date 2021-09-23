@@ -16,7 +16,8 @@ std::vector<std::string> StudentsOrder(const std::vector<StudentAction>& student
             papers.push_back(action.name);
         }
     }
-    for (size_t query : queries)
+    for (size_t query : queries) {
         result.push_back(papers.at(query - 1));
+    }
     return result;
 }
