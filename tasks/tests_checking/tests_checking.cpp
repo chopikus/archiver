@@ -10,7 +10,7 @@ std::vector<std::string> StudentsOrder(const std::vector<StudentAction>& student
     deque<string> papers;
     vector<string> result;
     for (StudentAction action : student_actions) {
-        if (action.side == Side::Top){
+        if (action.side == Side::Top) {
             papers.push_front(action.name);
         } else {
             papers.push_back(action.name);
