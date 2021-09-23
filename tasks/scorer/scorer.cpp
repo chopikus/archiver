@@ -20,13 +20,13 @@ map<StudentTask, bool> last_check_success;
 map<StudentTask, int> opened_merge_requests;
 map<string, set<string> > tasks_solved_by_student;
 
-bool compare_by_time(const Event& event1, const Event& event2) {
+bool CompareByTime(const Event& event1, const Event& event2) {
     return (event1.time < event2.time);
 }
 
 ScoreTable GetScoredStudents(const Events& events, time_t score_time) {
     Events sorted_events = events;
-    sort(sorted_events.begin(), sorted_events.end(), compare_by_time);
+    sort(sorted_events.begin(), sorted_events.end(), compareByTime);
     for (Event event : sorted_events) {
         if (event.time > score_time) {
             break;
