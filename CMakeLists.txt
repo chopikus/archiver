@@ -23,3 +23,11 @@ add_subdirectory(tasks/palindrome)
 add_subdirectory(tasks/password)
 add_subdirectory(tasks/sort_students)
 add_subdirectory(tasks/utf8)
+
+#2
+add_subdirectory(tasks/admission)
+add_subdirectory(tasks/scorer)
+add_subdirectory(tasks/search)
+add_subdirectory(tasks/tests_checking)
+add_subdirectory(tasks/unixpath)
+add_subdirectory(tasks/word2vec)
