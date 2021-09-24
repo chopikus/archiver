@@ -18,7 +18,7 @@ std::vector<std::string> SplitByRegex(const std::string str, const std::string r
 
 std::string NormalizePath(std::string_view current_working_dir, std::string_view path) {
     if (path[0] == '/') {
-        return path.data();
+        return NormalizePath(path, "");
     }
     vector<string> split_cur_dir = SplitByRegex(current_working_dir.data(), "/");
     stack<string> dirs;
