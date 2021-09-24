@@ -1,4 +1,5 @@
 #include <cmath>
+#include <limits>
 #include <vector>
 #include <stdexcept>
 #include "word2vec.h"
@@ -31,7 +32,7 @@ vector<string> FindClosestWords(const vector<string>& words, const vector<vector
             normalized_vectors.back().push_back(normalized_x);
         }
     }
-    double mx = 0;
+    double mx = std::numeric_limits<double>::lowest();
     for (size_t i = 1; i < normalized_vectors.size(); i++) {
         mx = std::max(mx, ScalarOnNorm(normalized_vectors[0], normalized_vectors[i]));
     }
