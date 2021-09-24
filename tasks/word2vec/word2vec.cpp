@@ -6,6 +6,8 @@
 using std::string;
 using std::vector;
 
+const double EPS = 1e-9;
+
 double ScalarOnNorm(const vector<double>& norm1, const vector<double>& norm2) {
     double result = 0;
     for (size_t i = 0; i < std::min(norm1.size(), norm2.size()); i++) {
@@ -36,7 +38,7 @@ vector<string> FindClosestWords(const vector<string>& words, const vector<vector
     vector<string> result;
     for (size_t i = 1; i < normalized_vectors.size(); i++) {
         double sc = ScalarOnNorm(normalized_vectors[0], normalized_vectors[i]);
-        if (sc == mx) {
+        if (std::abs(sc - mx) < EPS) {
             result.push_back(words[i]);
         }
     }
