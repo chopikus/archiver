@@ -62,5 +62,8 @@ std::string NormalizePath(std::string_view current_working_dir, std::string_view
             result += "/";
         }
     }
+    while (result.back() == '/') {
+        result.pop_back();
+    }
     return result;
 }
