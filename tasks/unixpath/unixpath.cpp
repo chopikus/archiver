@@ -22,7 +22,16 @@ std::string NormalizePath(std::string_view current_working_dir, std::string_view
     }
     vector<string> split_cur_dir = SplitByRegex(current_working_dir.data(), "/");
     stack<string> dirs;
+    bool is_empty_previous = false;
     for (const string& between_slashes : split_cur_dir) {
+        if (between_slashes.empty()) {
+            if (is_empty_previous) {
+                continue;
+            }
+            is_empty_previous = true;
+        } else {
+            is_empty_previous = false;
+        }
         dirs.push(between_slashes);
     }
     vector<string> split_path = SplitByRegex(path.data(), "/");
