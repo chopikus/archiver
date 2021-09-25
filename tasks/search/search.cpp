@@ -89,8 +89,8 @@ vector<string_view> Search(string_view text, string_view query, size_t results_c
         }
     }
     for (const string& query_word : query_words) {
-        if (idf_by_word[query_word] != 0) {
-            idf_by_word[query_word] = std::log(static_cast<double>(text_lines.size()) / idf_by_word[query_word]) + 1;
+        if (idf_by_word[query_word] != 0 && !text_lines.empty()) {
+            idf_by_word[query_word] = std::log(static_cast<double>(text_lines.size()) / idf_by_word[query_word]);
         }
     }
     size_t i = 0;
