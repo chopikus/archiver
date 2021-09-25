@@ -4,6 +4,7 @@
 #include "search.h"
 #include <tuple>
 #include <unordered_map>
+#include <set>
 
 using std::pair;
 using std::string;
@@ -74,11 +75,12 @@ vector<pair<size_t, size_t> > SplitIndices(const string_view& s, int (*fits)(int
 vector<string_view> Search(string_view text, string_view query, size_t results_count) {
     vector<string> text_lines = Split(text, LineSplitter);
     vector<string> query_words = Split(query, isalpha);
+    std::set<string> diff_query_words(query_words.begin(), query_words.end());
     vector<RelevanceIndex> relevance_on_lines;
     unordered_map<string, double> idf_by_word;
     for (const string& line : text_lines) {
         vector<string> line_words = Split(line, isalpha);
-        for (const string& query_word : query_words) {
+        for (const string& query_word : diff_query_words) {
             for (const string& line_word : line_words) {
                 if (line_word == query_word) {
                     ++idf_by_word[query_word];
@@ -87,7 +89,7 @@ vector<string_view> Search(string_view text, string_view query, size_t results_c
             }
         }
     }
-    for (const string& query_word : query_words) {
+    for (const string& query_word : diff_query_words) {
         if (idf_by_word[query_word] != 0 && !text_lines.empty()) {
             idf_by_word[query_word] = std::log(static_cast<double>(text_lines.size()) / idf_by_word[query_word]);
         }
