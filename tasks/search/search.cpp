@@ -72,8 +72,8 @@ vector<pair<size_t, size_t> > SplitIndices(const string_view& s, int (*fits)(int
 }
 
 vector<string_view> Search(string_view text, string_view query, size_t results_count) {
+    std::cout << text << "\n\n\n" << query << "\n===\n" <<std::endl;
     vector<string> text_lines = Split(text, LineSplitter);
-    std::cout << text_lines.size() << std::endl;
     vector<string> query_words = Split(query, isalpha);
     vector<RelevanceIndex> relevance_on_lines;
     unordered_map<string, double> idf_by_word;
@@ -106,6 +106,7 @@ vector<string_view> Search(string_view text, string_view query, size_t results_c
             tf /= line_words.size();
             relevance += tf * idf_by_word[word];
         }
+        std::cout << i << ' ' << relevance << std::endl;
         if (relevance > 0) {
             relevance_on_lines.push_back({.relevance = relevance, .index = i});
         }

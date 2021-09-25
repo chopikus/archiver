@@ -22,9 +22,9 @@ TEST_CASE("Search") {
 
     std::string_view query = "rEleaSe!&*!&TypeSettIng";
     std::vector<std::string_view> expected = {"electronic typesetting, remaining essentially"};
-    std::vector<std::string_view> expected2;
-    std::string_view text2 = "x";
-    std::string_view query2 = "x";
+    std::vector<std::string_view> expected2 = {"def!!", "abc!!def"};
+    std::string_view text2 = "xyz\ndef!!\nabc!!def";
+    std::string_view query2 = "def";
     REQUIRE(expected == Search(text, query, 1));
-    REQUIRE(expected2 == Search(text2, query2, 1));
+    REQUIRE(expected2 == Search(text2, query2, 2));
 }
