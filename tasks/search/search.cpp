@@ -28,17 +28,20 @@ int LineSplitter(int ch) {
 vector<string> Split(const string_view& s, int (*fits)(int)) {
     string buf;
     vector<string> result;
+    bool was_alpha_symbol = false;
     for (char ch : s) {
         if (fits(ch)) {
+            was_alpha_symbol |= isalpha(ch);
             buf += tolower(ch);
         } else {
-            if (!buf.empty()) {
+            if (!buf.empty() && was_alpha_symbol) {
                 result.push_back(buf);
             }
             buf = "";
+            was_alpha_symbol = false;
         }
     }
-    if (!buf.empty()) {
+    if (!buf.empty() && was_alpha_symbol) {
         result.push_back(buf);
     }
     return result;
@@ -47,19 +50,22 @@ vector<string> Split(const string_view& s, int (*fits)(int)) {
 vector<pair<size_t, size_t> > SplitIndices(const string_view& s, int (*fits)(int)) {
     size_t start = 0;
     size_t len = 0;
+    bool was_alpha_symbol = false;
     vector<pair<size_t, size_t> > result;
     for (size_t i = 0; i < s.size(); ++i) {
         if (fits(s[i])) {
+            was_alpha_symbol |= isalpha(s[i]);
             ++len;
         } else {
-            if (len > 0) {
+            if (len > 0 && was_alpha_symbol) {
                 result.push_back({start, len});
             }
             start = i + 1;
             len = 0;
+            was_alpha_symbol = false;
         }
     }
-    if (len > 0) {
+    if (len > 0 && was_alpha_symbol) {
         result.push_back({start, len});
     }
     return result;
