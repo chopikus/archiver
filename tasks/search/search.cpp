@@ -30,7 +30,7 @@ vector<string> Split(const string_view& s, int (*fits)(int)) {
     vector<string> result;
     for (char ch : s) {
         if (fits(ch)) {
-            buf += ch;
+            buf += tolower(ch);
         } else {
             if (!buf.empty()) {
                 result.push_back(buf);
