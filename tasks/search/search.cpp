@@ -102,7 +102,7 @@ vector<string_view> Search(string_view text, string_view query, size_t results_c
             word_counter[word]++;
         }
         double relevance = 0;
-        for (const string& word : query_words) {
+        for (const string& word : diff_query_words) {
             double tf = word_counter[word];
             if (!line_words.empty()) {
                 tf /= line_words.size();
