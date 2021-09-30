@@ -186,8 +186,9 @@ Minesweeper::GameStatus Minesweeper::GetGameStatus() const {
 }
 
 void Minesweeper::MemoryDestroy() {
-    if (cells_) {
+    if (cells_ != nullptr) {
         delete[] cells_;
+        cells = nullptr;
     }
 }
 
