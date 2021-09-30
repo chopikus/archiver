@@ -63,6 +63,7 @@ string UnixPath::GetAbsolutePath(string_view id, string_view rp) {
 }
 
 string UnixPath::Normalize(const string path) {
+    // removing multiple slashes, multiple ././ and / in the end
     if (path.empty()) {
         return ".";
     }
