@@ -14,6 +14,8 @@ find_package(Catch REQUIRED)
 
 include_directories(util)
 
+add_subdirectory(tasks/archiver)
+
 # 0
 add_subdirectory(tasks/multiplication)
 
@@ -31,3 +33,9 @@ add_subdirectory(tasks/search)
 add_subdirectory(tasks/tests_checking)
 add_subdirectory(tasks/unixpath)
 add_subdirectory(tasks/word2vec)
+
+#3
+add_subdirectory(tasks/mines)
+add_subdirectory(tasks/scorer2)
+add_subdirectory(tasks/search2)
+add_subdirectory(tasks/unixpath2)

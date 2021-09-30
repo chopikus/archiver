@@ -24,7 +24,7 @@
 
 - group:    02-homework-two
   start:    20-09-2021 00:00
-  deadline: 26-09-2021 23:59
+  deadline: 29-09-2021 23:59
   tasks:
     - task: admission
       score: 100
@@ -37,4 +37,17 @@
     - task: unixpath
       score: 100
     - task: word2vec
+      score: 100
+
+- group:    03-homework-three
+  start:    27-09-2021 00:00
+  deadline: 06-10-2021 23:59
+  tasks:
+    - task: mines
+      score: 200
+    - task: scorer2
+      score: 100
+    - task: search2
+      score: 100
+    - task: unixpath2
       score: 100
