@@ -32,4 +32,21 @@ public:
     time_t GetGameTime() const;
 
     RenderedField RenderField() const;
+    ~Minesweeper();
+
+private:
+    struct CellStatus {
+        bool is_mine = false;
+        bool is_cell_opened = false;
+        bool is_flag_set = false;
+    };
+    size_t width_ = 0, height_ = 0;
+    GameStatus game_status_ = GameStatus::NOT_STARTED;
+    CellStatus* cells_;
+    time_t start_time_;
+    CellStatus GetCell(const Cell& cell) const;
+    void SetCellOpened(const Cell& cell, bool is_opened);
+    void SetMine(const Cell& cell, bool is_mine);
+    void SetFlagSet(const Cell& cell, bool is_flag_set);
+    void MemoryDestroy();
 };
