@@ -24,10 +24,12 @@ void Minesweeper::SetFlagSet(const Minesweeper::Cell& cell, bool is_flag_set) {
 }
 
 Minesweeper::Minesweeper(size_t width, size_t height, const std::vector<Cell>& cells_with_mines) {
+    this->cells_ = nullptr;
     NewGame(width, height, cells_with_mines);
 }
 
 Minesweeper::Minesweeper(size_t width, size_t height, size_t mines_count) {
+    this->cells_ = nullptr;
     NewGame(width, height, mines_count);
 }
 

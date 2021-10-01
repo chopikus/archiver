@@ -42,7 +42,7 @@ private:
     };
     size_t width_ = 0, height_ = 0;
     GameStatus game_status_ = GameStatus::NOT_STARTED;
-    CellStatus* cells_;
+    CellStatus* cells_ = nullptr;
     time_t start_time_;
     CellStatus GetCell(const Cell& cell) const;
     void SetCellOpened(const Cell& cell, bool is_opened);
