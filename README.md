@@ -1,11 +1,10 @@
-# С++ курс
+# archiver
 
-Прочитайте [SETUP.md](SETUP.md) и сдайте первую задачу.
+# commands to use
 
-Дедлайны по задачам можно наблюдать в https://pilot.cpp-hse.org/.
+# benchmarks
+ -- text
+ -- video
+ -- images
 
-Стайлгайд описан в [STYLEGUIDE.md](STYLEGUIDE.md).
-
-Правила оценивания в [SCORE.md](SCORE.md).
-
-Записи лекций в [LECTURES.md](LECTURES.md).
+# possible support by other archivers?

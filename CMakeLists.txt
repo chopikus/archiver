@@ -1,41 +1,32 @@
-project(cpp-pilot-hse)
+cmake_minimum_required(VERSION 2.8)
+project(archiver)
 
-cmake_minimum_required(VERSION 3.8)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 
-set(CMAKE_MODULE_PATH              "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-set(CMAKE_EXPORT_COMPILE_COMMANDS  ON)
+add_executable(MAIN main.cpp)
 
-include(cmake/BuildFlags.cmake)
-include(cmake/TestSolution.cmake)
 
-find_package(Catch REQUIRED)
+add_library(ARCHIVER archiver/*)
 
-include_directories(util)
+target_link_libraries(MAIN ARCHIVER)
 
-add_subdirectory(tasks/archiver)
 
-# 0
-add_subdirectory(tasks/multiplication)
 
-# 1
-add_subdirectory(tasks/associative_operation)
-add_subdirectory(tasks/palindrome)
-add_subdirectory(tasks/password)
-add_subdirectory(tasks/sort_students)
-add_subdirectory(tasks/utf8)
 
-#2
-add_subdirectory(tasks/admission)
-add_subdirectory(tasks/scorer)
-add_subdirectory(tasks/search)
-add_subdirectory(tasks/tests_checking)
-add_subdirectory(tasks/unixpath)
-add_subdirectory(tasks/word2vec)
 
-#3
-add_subdirectory(tasks/mines)
-add_subdirectory(tasks/scorer2)
-add_subdirectory(tasks/search2)
-add_subdirectory(tasks/unixpath2)
+
+
+# Setup testing
+link_directories(/usr/local/lib)
+
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIR})
+
+add_custom_target(tests COMMAND GTEST_COLOR=yes ${CMAKE_CTEST_COMMAND} --verbose)
+
+file(GLOB TEST_FILES "tests/*.cpp")
+add_executable("archiver_tests" EXCLUDE_FROM_ALL ${TEST_FILES})
+target_link_libraries("archiver_tests" gtest pthread ARCHIVER)
+add_dependencies(tests "archiver_tests")
+add_test("archiver_tests" "./archiver_tests")
