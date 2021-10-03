@@ -32,7 +32,7 @@ void MinPriorityQueue::Heapify(size_t v) {
     }
 }
 
-void MinPriorityQueue::Push(uint16_t key, uint16_t priority) {
+void MinPriorityQueue::Push(Key key, Priority priority) {
     elements_.push_back(KeyPriority{.key = key, .priority = priority});
     // reordering
     size_t i = elements_.size() - 1;

@@ -64,34 +64,32 @@ TEST(MinPriorityQueue, PushAndPopMAX) {
 
 TEST(Trie, AddAndCheck1) {
     Trie trie(9);
-    trie.addChild(0, 1);
-    trie.addChild(0, 2);
-    trie.addChild(1, 3);
-    trie.addChild(1, 4);
-    trie.addChild(2, 7);
-    trie.addChild(7, 8);
-    std::vector<std::pair<uint16_t, std::string> > expected = {{1, "0"}, {2, "1"}, {3, "00"}, {4, "01"}, {7, "10"}, {8, "100"}};
-    ASSERT_EQ(expected, trie.PathsFrom(0));
+    trie.AddChild(0, 1);
+    trie.AddChild(0, 2);
+    trie.AddChild(1, 3);
+    trie.AddChild(1, 4);
+    trie.AddChild(2, 7);
+    trie.AddChild(7, 8);
+    std::vector<std::pair<uint16_t, std::string> > expected = {{3, "00"}, {4, "01"}, {8, "100"}};
+    ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
 TEST(Trie, AddAndCheckMAX) {
     Trie trie(500);
-    for (size_t i = 0; i < 500; ++i) {
-        trie.addChild(i, i + 1);
+    for (size_t i = 0; i < 1000; ++i) {
+        trie.AddChild(i, i + 1);
     }
     std::vector<std::pair<uint16_t, std::string> > expected;
-    for (uint16_t i = 1; i < 500; ++i) {
-        std::string s;
-        for (uint16_t j = 0; j < i; ++j) {
-            s += "0";
-        }
-        expected.push_back({i, s});
+    std::string s;
+    for (uint16_t j = 0; j < 499; ++j) {
+        s += "0";
     }
-    ASSERT_EQ(expected, trie.PathsFrom(0));
+    expected = {{499, s}};
+    ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
 int main(int argc, char** argv) {
-   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 

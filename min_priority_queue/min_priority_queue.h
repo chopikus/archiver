@@ -6,7 +6,7 @@
 #pragma once
 
 using Key = uint16_t;
-using Priority = uint16_t; 
+using Priority = uint64_t; 
 
 struct KeyPriority {
     Key key;
