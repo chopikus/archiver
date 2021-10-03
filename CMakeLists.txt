@@ -10,8 +10,9 @@ add_library(READER reader/reader.cpp)
 add_library(PRIORITY_QUEUE min_priority_queue/min_priority_queue.cpp)
 add_library(TRIE trie/trie.cpp)
 add_library(ARCHIVER archiver/archiver.cpp)
+add_library(WRITER writer/writer.cpp)
 
-target_link_libraries(MAIN ARCHIVER PRIORITY_QUEUE TRIE READER)
+target_link_libraries(MAIN ARCHIVER PRIORITY_QUEUE TRIE READER WRITER)
 
 
 # Setup testing

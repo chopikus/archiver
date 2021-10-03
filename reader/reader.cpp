@@ -1,4 +1,5 @@
 #include "reader.h"
+#include <iostream>
 
 Reader::Reader(const std::string& file_path) : file_(file_path, std::ios::binary | std::ios::ate), file_path_{file_path} {
     if (file_.tellg() != -1) {
