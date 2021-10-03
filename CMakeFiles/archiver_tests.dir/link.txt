@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++17 -Wall  -rdynamic CMakeFiles/archiver_tests.dir/tests/priority_queue_tests.cpp.o  -o archiver_tests   -L/usr/local/lib  -Wl,-rpath,/usr/local/lib -lgtest -lpthread libPRIORITY_QUEUE.a 

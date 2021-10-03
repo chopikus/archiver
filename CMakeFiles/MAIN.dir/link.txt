@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++17 -Wall  -rdynamic CMakeFiles/MAIN.dir/main.cpp.o  -o MAIN  libPRIORITY_QUEUE.a 
