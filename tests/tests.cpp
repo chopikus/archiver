@@ -1,6 +1,7 @@
-// Author: Evgenii Kazakov. Github: @evgenstf
 #include "../min_priority_queue/min_priority_queue.h"
+#include "../trie/trie.h"
 #include <gtest/gtest.h>
+#include <string>
 #include <vector>
 
 TEST(MinPriorityQueue, PushAndPop1) {
@@ -59,6 +60,34 @@ TEST(MinPriorityQueue, PushAndPopMAX) {
         ASSERT_EQ(kp1, kp2);
     }
     ASSERT_EQ(v, expected);
+}
+
+TEST(Trie, AddAndCheck1) {
+    Trie trie(9);
+    trie.addChild(0, 1);
+    trie.addChild(0, 2);
+    trie.addChild(1, 3);
+    trie.addChild(1, 4);
+    trie.addChild(2, 7);
+    trie.addChild(7, 8);
+    std::vector<std::pair<uint16_t, std::string> > expected = {{1, "0"}, {2, "1"}, {3, "00"}, {4, "01"}, {7, "10"}, {8, "100"}};
+    ASSERT_EQ(expected, trie.PathsFrom(0));
+}
+
+TEST(Trie, AddAndCheckMAX) {
+    Trie trie(500);
+    for (size_t i = 0; i < 500; ++i) {
+        trie.addChild(i, i + 1);
+    }
+    std::vector<std::pair<uint16_t, std::string> > expected;
+    for (uint16_t i = 1; i < 500; ++i) {
+        std::string s;
+        for (uint16_t j = 0; j < i; ++j) {
+            s += "0";
+        }
+        expected.push_back({i, s});
+    }
+    ASSERT_EQ(expected, trie.PathsFrom(0));
 }
 
 int main(int argc, char** argv) {
