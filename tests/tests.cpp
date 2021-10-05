@@ -1,3 +1,4 @@
+#include "../archiver/archiver.h"
 #include "../min_priority_queue/min_priority_queue.h"
 #include "../trie/trie.h"
 #include "../writer/writer.h"
@@ -90,7 +91,7 @@ TEST(Trie, AddAndCheckMAX) {
     ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
-constexpr size_t MAX_EVER_POSSIBLE_SIZE = 100;
+constexpr size_t MAX_EVER_POSSIBLE_SIZE = 1024;
 
 std::vector<char> read_bytes(std::string file_path) {
     std::vector<char> result;
@@ -101,7 +102,7 @@ std::vector<char> read_bytes(std::string file_path) {
     infile.seekg(0, std::ios::beg);
     if (length == -1)
         return result;
-    infile.read(buffer, 1);
+    infile.read(buffer, length);
     for (size_t i = 0; i < static_cast<size_t>(length); ++i) {
         result.push_back(buffer[i]);
     }
@@ -138,6 +139,39 @@ TEST(Writer, Write9BitsTwice) {
     ASSERT_EQ(p2.size(), 3);
     for (size_t i = 0; i < 2; ++i) {
         ASSERT_EQ(p1[i], p2[i]);
+    }
+}
+
+TEST(Archiver, Compress) {
+    Archiver archiver("../tests/a");
+    Writer writer("a_compressed");
+    archiver.CompressTo(writer, true);
+    writer.Finish();
+    Writer wr("compress_test");
+    wr.Write9(4);
+    wr.Write9(97);
+    wr.Write9(258);
+    wr.Write9(256);
+    wr.Write9(257);
+    wr.Write9(1);
+    wr.Write9(1);
+    wr.Write9(2);
+    wr.WriteAny("0");
+    wr.WriteAny("110");
+    wr.WriteAny("0");
+    wr.WriteAny("0");
+    wr.WriteAny("0");
+    wr.WriteAny("0");
+    wr.WriteAny("0");
+    wr.WriteAny("10");
+    wr.Finish();
+    std::vector<char> p1 = read_bytes("a_compressed");
+    std::vector<char> p2 = read_bytes("compress_test");
+    ASSERT_EQ(p1.size(), p2.size());
+    for (size_t i = 0; i < p1.size(); ++i) {
+        unsigned char u1 = p1[i];
+        unsigned char u2 = p2[i];
+        ASSERT_EQ(u1, u2);
     }
 }
 

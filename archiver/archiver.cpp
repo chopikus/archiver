@@ -42,14 +42,15 @@ bool CanonicalCompare(const pair<uint16_t, string>& p1, const pair<uint16_t, str
 
 Archiver::Archiver(const std::string& file_path) : file_path_{file_path} {};
 
-void Archiver::CompressTo(Writer& w) {
+void Archiver::CompressTo(Writer& w, bool is_last_file) {
     map<uint16_t, uint64_t> freqs = GetFrequencies(); 
-    vector<pair<uint16_t, string> > paths;
-    map<uint16_t, string> paths_by_symbol;
+    vector<pair<uint16_t, string> > codes;
+    map<uint16_t, string> code_of_symbol;
 
     MinPriorityQueue q{};
     Trie trie(TRIE_SIZE);
     for (auto [symbol, freq] : freqs) {
+        std::cout << symbol << ' ' << freq << std::endl;
         q.Push(symbol, freq);
     }
     uint16_t v = NEW_VERTEX_START;
@@ -70,10 +71,9 @@ void Archiver::CompressTo(Writer& w) {
                 }
             }
             for (auto [number, path] : leaves) {
-                std::cout << number << ' ' << path << std::endl;
-                paths_by_symbol[number] = path;
+                code_of_symbol[number] = path;
             } 
-            paths = leaves;
+            codes = leaves;
             break;
         } else {
             KeyPriority kp2 = q.Pop();
@@ -84,31 +84,38 @@ void Archiver::CompressTo(Writer& w) {
         }
     }
     w.Write9(static_cast<uint16_t>(freqs.size()));
-    for (auto [symbol, path] : paths) {
+    for (auto [symbol, path] : codes) {
         w.Write9(symbol);
     }
-    map<uint16_t, uint16_t> paths_with_size;
+    map<uint16_t, uint16_t> codes_with_size;
     uint16_t max_symbol_code_size = 0;
-    for (auto& [symbol, path] : paths) {
-        ++paths_with_size[path.size()];
-        max_symbol_code_size = std::max(max_symbol_code_size, static_cast<uint16_t>(path.size()));
+    for (auto& [symbol, code] : codes) {
+        std::cout << symbol << ' ' << code << std::endl;
+        ++codes_with_size[code.size()];
+        max_symbol_code_size = std::max(max_symbol_code_size, static_cast<uint16_t>(code.size()));
     }
     for (uint16_t i = 1; i <= max_symbol_code_size; ++i) {
-        w.Write9(paths_with_size[i]);
+        w.Write9(codes_with_size[i]);
     }
     Reader reader = Reader(file_path_);
     string file_name = reader.file_name();
     for (char& ch : file_name) {
-        w.WriteAny(paths_by_symbol[ch]);
+        w.WriteAny(code_of_symbol[ch]);
     }
-    w.WriteAny(paths_by_symbol[FILENAME_END]); 
+    w.WriteAny(code_of_symbol[FILENAME_END]); 
     while (reader.has_next_byte()) {
         uint8_t byte = reader.read_next_byte();
-        w.WriteAny(paths_by_symbol[byte]);
+        w.WriteAny(code_of_symbol[byte]);
+    }
+    if (is_last_file) {
+        w.WriteAny(code_of_symbol[ARCHIVE_END]);
+    } else {
+        w.WriteAny(code_of_symbol[ONE_MORE_FILE]);
     }
 }
 
 void Archiver::DecompressTo(Writer& w) {
+        
 }
 
 map<uint16_t, uint64_t> Archiver::GetFrequencies() {

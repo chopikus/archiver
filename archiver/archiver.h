@@ -13,10 +13,11 @@
 class Archiver {
     public:
         Archiver(const std::string& file_path);
-        void CompressTo(Writer& w);
+        void CompressTo(Writer& w, bool is_last_file);
         void DecompressTo(Writer& w);
 
     private:
         std::map<uint16_t, uint64_t> GetFrequencies();
+        
         std::string file_path_;
 };

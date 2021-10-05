@@ -1,5 +1,4 @@
 #include "writer.h"
-#include <iostream>
 
 using std::ofstream;
 using std::string;
@@ -19,7 +18,6 @@ void Writer::CheckAndWrite() {
 }
 
 void Writer::Write1(bool b) {
-    std::cout << b;
     buf_.push_back(b);
     CheckAndWrite();    
 }

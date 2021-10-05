@@ -5,12 +5,12 @@
 using namespace std;
 
 int main() {
-    Archiver archiver("../a");
+    Archiver archiver("../tests/a");
 
-    string path = "../a.cho";
+    string path = "build/a.cho";
     Writer writer(path);
     
-    archiver.CompressTo(writer);    
+    archiver.CompressTo(writer, true);    
     
     writer.Finish();
     return 0;
