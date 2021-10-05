@@ -25,7 +25,7 @@ void Writer::Write1(bool b) {
 }
 
 void Writer::Write9(uint16_t u) {
-    for (int i = 8; i >= 0; --i) {
+    for (int i = 0; i < 9; ++i) {
         Writer::Write1((u >> i) & 1);
     }
 }
@@ -37,13 +37,15 @@ void Writer::WriteAny(const string& s) {
 }
 
 void Writer::Finish() {
-    uint8_t x = 0;
-    for (size_t i = 0; i < buf_.size(); ++i) {
-        x *= 2;
-        x += buf_[i];
+    if (!buf_.empty()) {
+        uint8_t x = 0;
+        for (size_t i = 0; i < buf_.size(); ++i) {
+            x *= 2;
+            x += buf_[i];
+        }
+        x <<= (8 - buf_.size());
+        os_.write((char*) &x, 1);
+        buf_.clear();
     }
-    x <<= (8 - buf_.size());
-    os_.write((char*) &x, 1);
-    buf_.clear();
     os_.close();
 }

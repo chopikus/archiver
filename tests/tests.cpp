@@ -1,7 +1,9 @@
 #include "../min_priority_queue/min_priority_queue.h"
 #include "../trie/trie.h"
+#include "../writer/writer.h"
 #include <gtest/gtest.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 TEST(MinPriorityQueue, PushAndPop1) {
@@ -86,6 +88,57 @@ TEST(Trie, AddAndCheckMAX) {
     }
     expected = {{499, s}};
     ASSERT_EQ(expected, trie.LeavesFrom(0));
+}
+
+constexpr size_t MAX_EVER_POSSIBLE_SIZE = 100;
+
+std::vector<char> read_bytes(std::string file_path) {
+    std::vector<char> result;
+    char buffer[MAX_EVER_POSSIBLE_SIZE] = {0};
+    std::ifstream infile(file_path);
+    infile.seekg(0, std::ios::end);
+    intmax_t length = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    if (length == -1)
+        return result;
+    infile.read(buffer, 1);
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {
+        result.push_back(buffer[i]);
+    }
+    return result;
+}
+
+TEST(Writer, WriteOneByte) {
+    Writer writer("writer_test1.bin");
+    for (size_t i = 0; i < 8; ++i) {
+        writer.Write1(i < 4);   
+    }
+    writer.Finish();
+    std::vector<char> p1 = read_bytes("writer_test1.bin");
+    std::vector<char> p2 = read_bytes("../tests/writer_ans1.bin");
+    size_t len1 = p1.size();
+    size_t len2 = p2.size();
+    ASSERT_EQ(len1, 1);
+    ASSERT_EQ(len2, 1);
+    unsigned char b1 = p1[0];
+    unsigned char b2 = p2[0];
+    ASSERT_EQ(b1, 240);
+    ASSERT_EQ(b2, 240);
+    ASSERT_EQ(b1, b2);
+}
+
+TEST(Writer, Write9BitsTwice) {
+    Writer writer("writer_test2.bin");
+    writer.Write9(257);
+    writer.Write9(385);
+    writer.Finish();
+    std::vector<char> p1 = read_bytes("writer_test2.bin");    
+    std::vector<char> p2 = read_bytes("../tests/writer_ans2.bin"); 
+    ASSERT_EQ(p1.size(), 3);
+    ASSERT_EQ(p2.size(), 3);
+    for (size_t i = 0; i < 2; ++i) {
+        ASSERT_EQ(p1[i], p2[i]);
+    }
 }
 
 int main(int argc, char** argv) {

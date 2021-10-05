@@ -26,6 +26,6 @@ add_custom_target(tests COMMAND GTEST_COLOR=yes ${CMAKE_CTEST_COMMAND} --verbose
 
 file(GLOB TEST_FILES "tests/*.cpp")
 add_executable("archiver_tests" EXCLUDE_FROM_ALL ${TEST_FILES})
-target_link_libraries("archiver_tests" gtest pthread PRIORITY_QUEUE TRIE)
+target_link_libraries("archiver_tests" gtest pthread PRIORITY_QUEUE TRIE READER WRITER ARCHIVER)
 add_dependencies(tests "archiver_tests")
 add_test("archiver_tests" "./archiver_tests")
