@@ -91,9 +91,26 @@ TEST(Trie, AddAndCheckMAX) {
     ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
+TEST(Reader, ReadBinaryFile) {
+    const std::vector<unsigned char> expected_data = {
+        0xAA, 0xAA, 0xAA, 0xAA,
+        0xBB, 0xBB, 0xBB, 0xBB,
+        0xCC, 0xCC, 0xCC, 0xCC
+    };
+
+    Reader reader("../tests/reader_test1.bin");
+    for (size_t i = 0; i < expected_data.size(); ++i) {
+        ASSERT_FALSE(reader.IsEOF());
+        auto read_byte = reader.Read8();
+        ASSERT_EQ(read_byte, expected_data[i]);
+    }
+
+    ASSERT_TRUE(reader.IsEOF());
+}
+
 constexpr size_t MAX_EVER_POSSIBLE_SIZE = 1024;
 
-std::vector<char> read_bytes(std::string file_path) {
+std::vector<char> ReadBytes(std::string file_path) {
     std::vector<char> result;
     char buffer[MAX_EVER_POSSIBLE_SIZE] = {0};
     std::ifstream infile(file_path);
@@ -115,8 +132,8 @@ TEST(Writer, WriteOneByte) {
         writer.Write1(i < 4);   
     }
     writer.Finish();
-    std::vector<char> p1 = read_bytes("writer_test1.bin");
-    std::vector<char> p2 = read_bytes("../tests/writer_ans1.bin");
+    std::vector<char> p1 = ReadBytes("writer_test1.bin");
+    std::vector<char> p2 = ReadBytes("../tests/writer_ans1.bin");
     size_t len1 = p1.size();
     size_t len2 = p2.size();
     ASSERT_EQ(len1, 1);
@@ -133,8 +150,8 @@ TEST(Writer, Write9BitsTwice) {
     writer.Write9(257);
     writer.Write9(385);
     writer.Finish();
-    std::vector<char> p1 = read_bytes("writer_test2.bin");    
-    std::vector<char> p2 = read_bytes("../tests/writer_ans2.bin"); 
+    std::vector<char> p1 = ReadBytes("writer_test2.bin");    
+    std::vector<char> p2 = ReadBytes("../tests/writer_ans2.bin"); 
     ASSERT_EQ(p1.size(), 3);
     ASSERT_EQ(p2.size(), 3);
     for (size_t i = 0; i < 2; ++i) {
@@ -147,7 +164,7 @@ TEST(Archiver, Compress) {
     Writer writer("a_compressed");
     archiver.CompressTo(writer, true);
     writer.Finish();
-    Writer wr("compress_test");
+    Writer wr("../tests/compress_test");
     wr.Write9(4);
     wr.Write9(97);
     wr.Write9(258);
@@ -165,13 +182,33 @@ TEST(Archiver, Compress) {
     wr.WriteAny("0");
     wr.WriteAny("10");
     wr.Finish();
-    std::vector<char> p1 = read_bytes("a_compressed");
-    std::vector<char> p2 = read_bytes("compress_test");
+    std::vector<char> p1 = ReadBytes("a_compressed");
+    std::vector<char> p2 = ReadBytes("../tests/compress_test");
     ASSERT_EQ(p1.size(), p2.size());
     for (size_t i = 0; i < p1.size(); ++i) {
         unsigned char u1 = p1[i];
         unsigned char u2 = p2[i];
         ASSERT_EQ(u1, u2);
+    }
+}
+
+TEST(Archiver, CompressAndDecompress) {
+    std::vector<std::string> names = {"a", "ab", "abc"};
+    Writer writer("compressed.bin");
+    for (size_t i = 0; i < names.size(); ++i) {
+        Archiver archiver("../tests/"+names[i]);
+        archiver.CompressTo(writer, (i+1 == names.size()));
+    }
+    writer.Finish();
+    Archiver d("compressed.bin");
+    d.DecompressTo(".");
+    for (size_t i = 0; i < names.size(); ++i) {
+        std::vector<char> v1 = ReadBytes("../tests/"+names[i]);
+        std::vector<char> v2 = ReadBytes(names[i]);
+        ASSERT_EQ(v1.size(), v2.size());
+        for (size_t j = 0; j < v1.size(); ++j) {
+            ASSERT_EQ(v1[j], v2[j]);
+        }
     }
 }
 

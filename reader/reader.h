@@ -6,7 +6,7 @@ class Reader {
         Reader(const std::string& file_path);
         
         bool Read1();
-        uint16_t Read9();
+        uint16_t Read9Reversed();
         uint8_t Read8();
         std::string FileName() const;
         size_t FileSize();        

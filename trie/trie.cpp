@@ -1,3 +1,4 @@
+#include "../error_handler/error_handler.h"
 #include <queue>
 #include <string>
 #include "trie.h"

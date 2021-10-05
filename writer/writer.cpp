@@ -1,4 +1,7 @@
+#include "../error_handler/error_handler.h"
 #include "writer.h"
+#include <iostream>
+
 
 using std::ofstream;
 using std::string;
@@ -11,6 +14,9 @@ void Writer::CheckAndWrite() {
         for (size_t i = 0; i < buf_.size(); ++i) {
             x *= 2;
             x += buf_[i];
+        }
+        if (!os_.good()) {
+            ErrorHandler::foundError(ErrorHandler::WRITE_ERROR);
         }
         os_.write((char*) &x, 1);
         buf_.clear();
@@ -28,6 +34,11 @@ void Writer::Write9(uint16_t u) {
     }
 }
 
+void Writer::Write8(uint8_t u) {
+    for (int i = 7; i >= 0; --i) {
+        Writer::Write1((u >> i) & 1);
+    }
+}
 void Writer::WriteAny(const string& s) {
     for (size_t i = 0; i < s.size(); ++i) {
         Writer::Write1(s[i]=='1');
@@ -40,6 +51,9 @@ void Writer::Finish() {
         for (size_t i = 0; i < buf_.size(); ++i) {
             x *= 2;
             x += buf_[i];
+        }
+        if (!os_.good()) {
+            ErrorHandler::foundError(ErrorHandler::WRITE_ERROR);
         }
         x <<= (8 - buf_.size());
         os_.write((char*) &x, 1);
