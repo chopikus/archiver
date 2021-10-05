@@ -15,6 +15,7 @@ __pycache__
 perf.data*
 cmake-*
 .submit-repo/
+Testing/
 CMakeSettings.json
 CppProperties.json
 .vs/
