@@ -20,7 +20,7 @@ class Archiver {
 
     private:
         void DecompressOneFile(const std::string& file_path, Reader& reader); 
-        void CompressOneFile(const std::string& file_path, const std::string& compress_path, bool is_last_file);
+        void CompressOneFile(const std::string& file_path, Writer& writer, bool is_last_file);
         uint16_t ReadSymbol(Reader& reader, std::unordered_map<std::string, uint16_t>& code_to_symbol); 
         std::vector<std::string> file_paths_;
 };

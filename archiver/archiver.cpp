@@ -154,13 +154,12 @@ namespace {
 }
 
 
-void Archiver::CompressOneFile(const string& file_path, const string& compress_path, bool is_last_file) {
+void Archiver::CompressOneFile(const string& file_path, Writer& writer, bool is_last_file) {
     vector<pair<uint16_t, CodeAndLength> > canonical_codes = GetCodesFromData(file_path);
     map<uint16_t, CodeAndLength> code_of_symbol;
     for (auto [symbol, code_and_length] : canonical_codes) {
         code_of_symbol[symbol] = code_and_length;
     }
-    Writer writer(compress_path);
     writer.Write9(canonical_codes.size());
     map<uint16_t, uint16_t> codes_with_size;
     uint16_t max_symbol_code_size = 0;
@@ -191,7 +190,6 @@ void Archiver::CompressOneFile(const string& file_path, const string& compress_p
     } else {
         writer.WriteAny(one_more_file.code, one_more_file.length);
     } 
-    writer.Finish();
 }
 
 void Archiver::DecompressOneFile(const string& decompress_to, Reader& reader) {
@@ -229,10 +227,12 @@ void Archiver::DecompressOneFile(const string& decompress_to, Reader& reader) {
 
 void Archiver::CompressTo(string compress_path) {
     size_t i = 0;
+    Writer writer(compress_path);
     for (const string& file_path : file_paths_) {
-        CompressOneFile(file_path, compress_path, (i + 1 == file_paths_.size()));
+        CompressOneFile(file_path, writer, (i + 1 == file_paths_.size()));
         ++i;
-    }    
+    } 
+    writer.Finish();
 }
 
 void Archiver::Decompress() {

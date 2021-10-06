@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
         }
     } else {
         try {
-        Archiver archiver(files);
-        archiver.Decompress();
+            Archiver archiver(files);
+            archiver.Decompress();
         } catch (const char * e) {
             std::cerr << "ERROR: " << e << std::endl;
         }

@@ -194,7 +194,7 @@ TEST(Archiver, CompressAndDecompress) {
     Archiver d({"compressed.bin"});
     d.Decompress();
     for (size_t i = 0; i < names.size(); ++i) {
-        std::vector<char> v1 = ReadBytes("../tests/mock/"+names[i]);
+        std::vector<char> v1 = ReadBytes(archive_paths[i]);
         std::vector<char> v2 = ReadBytes(names[i]);
         ASSERT_EQ(v1.size(), v2.size());
         for (size_t j = 0; j < v1.size(); ++j) {
