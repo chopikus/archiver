@@ -1,7 +1,0 @@
-/home/ihor/dev/archiver/CMakeFiles/rebuild_cache.dir
-/home/ihor/dev/archiver/CMakeFiles/edit_cache.dir
-/home/ihor/dev/archiver/CMakeFiles/test.dir
-/home/ihor/dev/archiver/CMakeFiles/archiver_tests.dir
-/home/ihor/dev/archiver/CMakeFiles/PRIORITY_QUEUE.dir
-/home/ihor/dev/archiver/CMakeFiles/tests.dir
-/home/ihor/dev/archiver/CMakeFiles/MAIN.dir
