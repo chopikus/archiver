@@ -8,24 +8,14 @@ using std::string;
 
 Writer::Writer(const string& file_path) : os_(file_path, std::ios::binary | std::ios::out) {};
 
-void Writer::CheckAndWrite() {
-    if (buf_.size() == 8) {
-        uint8_t x = 0;
-        for (size_t i = 0; i < buf_.size(); ++i) {
-            x *= 2;
-            x += buf_[i];
-        }
-        if (!os_.good()) {
-            ErrorHandler::foundError(ErrorHandler::WRITE_ERROR);
-        }
-        os_.write((char*) &x, 1);
-        buf_.clear();
-    }
-}
-
 void Writer::Write1(bool b) {
-    buf_.push_back(b);
-    CheckAndWrite();    
+    ++buf_pos_;
+    buf_ *= 2;
+    buf_ += b;
+    if (buf_pos_ == 8) {
+        os_.write((char*) &buf_, 1);
+        buf_pos_ = 0;
+    }
 }
 
 void Writer::Write9(uint16_t u) {
@@ -46,18 +36,11 @@ void Writer::WriteAny(const string& s) {
 }
 
 void Writer::Finish() {
-    if (!buf_.empty()) {
-        uint8_t x = 0;
-        for (size_t i = 0; i < buf_.size(); ++i) {
-            x *= 2;
-            x += buf_[i];
-        }
+    if (buf_pos_ < 8) { 
         if (!os_.good()) {
             ErrorHandler::foundError(ErrorHandler::WRITE_ERROR);
         }
-        x <<= (8 - buf_.size());
-        os_.write((char*) &x, 1);
-        buf_.clear();
+        os_.write((char*) &buf_, 1);
     }
     os_.close();
 }

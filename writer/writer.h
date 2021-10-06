@@ -15,6 +15,7 @@ class Writer {
         void Finish();
     private:
         std::ofstream os_;
-        std::vector<bool> buf_;
+        uint8_t buf_;
+        uint8_t buf_pos_;
         void CheckAndWrite();
 };
