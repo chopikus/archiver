@@ -33,8 +33,8 @@ class MinPriorityQueue {
         MinPriorityQueue() {};
         ~MinPriorityQueue() {};
         void Push(Key key, Priority priority);
-        KeyPriority Top() const; // returning key, then priority
-        KeyPriority Pop();
+        std::pair<Key, Priority> Top() const; // returning key, then priority
+        std::pair<Key, Priority> Pop();
         bool Empty() const;
     private:
         std::vector<KeyPriority> elements_;

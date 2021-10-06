@@ -9,7 +9,7 @@ class Trie {
     public:
         Trie(uint16_t size); 
         void AddChild(uint16_t parent, uint16_t child);
-        std::vector<std::pair<uint16_t, std::string> > LeavesFrom(uint16_t start);
+        std::vector<std::pair<uint16_t, uint16_t> > LeavesFrom(uint16_t start);
         ~Trie();
     private:
         std::pair<uint16_t, uint16_t>* children_;

@@ -1,6 +1,4 @@
-#include "../error_handler/error_handler.h"
 #include "reader.h"
-#include <iostream>
 
 unsigned char Reverse(unsigned char b) {
     b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
@@ -13,7 +11,7 @@ Reader::Reader(const std::string& file_path) : file_(file_path, std::ios::binary
     if (file_.tellg() != -1) {
         file_size_ = file_.tellg();
     } else {
-        ErrorHandler::foundError(ErrorHandler::FILE_NOT_FOUND_OR_EMPTY);    
+        throw "File is not found! (or empty)";
     }
     file_.seekg(0);
 }
@@ -45,7 +43,7 @@ uint16_t Reader::Read9Reversed() {
 unsigned char Reader::ReadByte() {
     char buffer;
     if (file_.fail()) {
-        ErrorHandler::foundError(ErrorHandler::READ_ERROR);
+        throw "Read error!";
     }
     file_.read(&buffer, 1);
     ++bytes_read_;

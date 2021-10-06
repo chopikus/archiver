@@ -7,11 +7,8 @@
 
 using namespace std;
 
-const string COMPRESS_ARG = "-c";
-const string DECOMPRESS_ARG = "-d";
-const string HELP_ARG = "-h";
-const string HELP_TEXT = "Compressing files [file1, file2, ...] to file with name 'archive_name': 'archiver -c archive_name file1 [file2 ...]'.\n"
-                         "Decompressing file archive_name to current folder: 'archiver -d archive_name'.";
+string HELP_TEXT = "Compressing files [file1, file2, ...] to file with name 'archive_name': 'archiver -c archive_name file1 [file2 ...]'.\n"
+"Decompressing file archive_name to current folder: 'archiver -d archive_name'.";
 void ShowHelpAndExit() {
     std::cout << HELP_TEXT << std::endl;
     exit(EXIT_SUCCESS);
@@ -23,27 +20,26 @@ pair<bool, vector<string> > ParseArguments(int argc, char* argv[]) {
         return {false, vector<string>()};
     } else {
         vector<string> result;
-        bool has_compress, has_decompress;
+        bool has_compress = false, has_decompress = false;
         for (int i = 1; i < argc; ++i) {
             if (strcmp(argv[i], "-c") == 0) {
                 has_compress = true;
-            } 
-            if (strcmp(argv[i], "-d") == 0) {
+            } else if (strcmp(argv[i], "-d") == 0) {
                 has_decompress = true;
-            }
-            if (strcmp(argv[i], "-h") == 0) {
+            } else if (strcmp(argv[i], "-h") == 0) {
                 ShowHelpAndExit();
+            } else {
+                result.push_back(argv[i]);
             }
-            result.push_back(argv[i]);
         }
         if (has_compress && has_decompress) {
-            ErrorHandler::foundError(ErrorHandler::CONFUSING_ARGUMENTS);
+            throw "confusing arguments! use -h for help";
         }
-        if (has_compress && result.size() < 3) {
-            ErrorHandler::foundError(ErrorHandler::WRONG_ARGUMENTS);
+        if (has_compress && result.size() < 2) {
+            throw "wrong arguments! use -h for help";
         }
-        if (has_decompress && result.size() < 2) {
-            ErrorHandler::foundError(ErrorHandler::WRONG_ARGUMENTS);
+        if (has_decompress && result.size() < 1) {
+            throw "wrong arguments! use -h for help";
         }
         return {has_compress, result};
     }
@@ -52,18 +48,23 @@ pair<bool, vector<string> > ParseArguments(int argc, char* argv[]) {
 int main(int argc, char* argv[]) {
     pair<bool, vector<string> > p = ParseArguments(argc, argv);
     bool is_compress = p.first;
-    vector<string> args = p.second;
+    vector<string> files = p.second;
     if (is_compress) {
-        Writer writer(args[1]);
-        for (size_t i = 2; i < args.size(); ++i) {
-            std::cout << args[i] << std::endl;
-            Archiver archiver(args[i]);
-            archiver.CompressTo(writer, (i + 1 == args.size()));
-        }       
-        writer.Finish();
+        try {
+            string compress_path = files[0];
+            files.erase(files.begin());
+            Archiver archiver(files);
+            archiver.CompressTo(compress_path);
+        } catch (const char* e) {
+            std::cerr << "ERROR: " << e << std::endl;
+        }
     } else {
-        Archiver archiver(args[1]);
-        archiver.DecompressTo(".");
+        try {
+        Archiver archiver(files);
+        archiver.Decompress();
+        } catch (const char * e) {
+            std::cerr << "ERROR: " << e << std::endl;
+        }
     }
     return 0;
 }

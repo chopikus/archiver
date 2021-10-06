@@ -11,11 +11,10 @@ class Writer {
         void Write1(bool b);
         void Write8(uint8_t u);
         void Write9(uint16_t u);
-        void WriteAny(const std::string& s);
+        void WriteAny(uint16_t code, uint16_t length);
         void Finish();
     private:
         std::ofstream os_;
-        uint8_t buf_;
-        uint8_t buf_pos_;
-        void CheckAndWrite();
+        uint8_t buf_ = 0;
+        uint8_t buf_pos_ = 0;
 };

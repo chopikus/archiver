@@ -1,5 +1,4 @@
 #include "min_priority_queue.h"
-#include <iostream>
 
 size_t MinPriorityQueue::Parent(size_t i) const {
     if (i == 0) {
@@ -42,16 +41,16 @@ void MinPriorityQueue::Push(Key key, Priority priority) {
     }
 }
 
-KeyPriority MinPriorityQueue::Top() const {
-    return elements_[0];
+std::pair<Key, Priority> MinPriorityQueue::Top() const {
+    return {elements_[0].key, elements_[0].priority};
 }
 
-KeyPriority MinPriorityQueue::Pop() {
+std::pair<Key, Priority> MinPriorityQueue::Pop() {
     KeyPriority top = elements_[0];
     std::swap(elements_[0], elements_.back());
     elements_.pop_back();
     Heapify(0);
-    return top;
+    return {top.key, top.priority};
 }
 
 bool MinPriorityQueue::Empty() const {

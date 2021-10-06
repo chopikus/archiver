@@ -1,4 +1,3 @@
-#include "../error_handler/error_handler.h"
 #include <queue>
 #include <string>
 #include "trie.h"
@@ -29,29 +28,29 @@ void Trie::AddChild(uint16_t parent, uint16_t child) {
     }
 }
 
-vector<pair<uint16_t, string> > Trie::LeavesFrom(uint16_t start) {
+vector<pair<uint16_t, uint16_t> > Trie::LeavesFrom(uint16_t start) {
     if (start >= size_) {
-        return vector<pair<uint16_t, string> >();
+        return vector<pair<uint16_t, uint16_t> >();
     }
-    queue<pair<uint16_t, string> > q;
-    q.push({start, ""});
-    vector<pair<uint16_t, string> > result;
+    queue<pair<uint16_t, uint16_t> > q;
+    q.push({start, 0});
+    vector<pair<uint16_t, uint16_t> > result;
     while (!q.empty()) {
-        pair<uint16_t, string> qt = q.front();
+        pair<uint16_t, uint16_t> qt = q.front();
         q.pop();
         uint16_t v = qt.first;
         if (v >= size_) {
             continue;
         }
-        string path = qt.second;
+        uint16_t length = qt.second;
         if (children_[v].first == v && children_[v].second == v) {
-            result.push_back({v, path});
+            result.push_back({v, length});
         }
         if (children_[v].first != v) {
-            q.push({children_[v].first, path + "0"});
+            q.push({children_[v].first, length + 1});
         }
         if (children_[v].second != v) {
-            q.push({children_[v].second, path + "1"});
+            q.push({children_[v].second, length + 1});
         }
     }
     return result;

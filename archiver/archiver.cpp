@@ -1,6 +1,4 @@
 #include "archiver.h"
-#include "../error_handler/error_handler.h"
-#include <iostream>
 
 using std::back_inserter;
 using std::map;
@@ -22,29 +20,17 @@ const char PATH_DELIMITER = '/';
 Archiver::Archiver(vector<string> file_paths) : file_paths_{file_paths} {};
 
 namespace {
-    struct CodeAndLength {
-        uint16_t code;
-        uint16_t length;
-    };
-    vector<CodeAndLength> GenerateCanonicalCodes(vector<uint16_t> lengths) {
-        if (lengths.size() == 0) {
-            return vector<CodeAndLength>();
-        }
-        for (size_t i = 0; i < lengths.size(); ++i) {
-            std::cout << lengths[i] << std::endl;
-        }
-        vector<CodeAndLength> codes_and_lengths;
-        uint16_t code = 0;
-        uint16_t code_length = lengths[0];
-        codes_and_lengths.push_back({code, code_length});
-        for (size_t i = 1; i < lengths.size(); ++i) {
-            ++code;
-            code <<= (lengths[i] - code_length);
-            code_length = lengths[i];
-            codes_and_lengths.push_back({code, code_length});
-        }
-        return codes_and_lengths;
-    }
+    class CodeAndLength {
+        public:
+            uint16_t code;
+            uint16_t length;
+            bool operator<(const CodeAndLength& another) const {
+                if (code != another.code) {
+                    return code < another.code;
+                }
+                return length < another.length;
+            }
+    }; 
     bool SortBySecond(const std::pair<uint16_t, uint16_t>& p1, const std::pair<uint16_t, uint16_t>& p2) {
         if (p1.second != p2.second) {
             return (p1.second < p2.second);
@@ -70,7 +56,24 @@ namespace {
         return result; 
     }
 
-    vector<pair<uint16_t, CodeAndLength> > GetCanonicalCodes(const string& file_path) {
+    vector<CodeAndLength> GenerateCanonicalCodes(vector<uint16_t> lengths) {
+        if (lengths.size() == 0) {
+            return vector<CodeAndLength>();
+        }
+        vector<CodeAndLength> codes_and_lengths;
+        uint16_t code = 0;
+        uint16_t code_length = lengths[0];
+        codes_and_lengths.push_back({code, code_length});
+        for (size_t i = 1; i < lengths.size(); ++i) {
+            ++code;
+            code <<= (lengths[i] - code_length);
+            code_length = lengths[i];
+            codes_and_lengths.push_back({code, code_length});
+        }
+        return codes_and_lengths;
+    }
+
+    vector<pair<uint16_t, CodeAndLength> > GetCodesFromData(const string& file_path) {
         map<uint16_t, uint64_t> frequencies = GetFrequencies(file_path);
         MinPriorityQueue priority_queue{};
         Trie trie(TRIE_SIZE);
@@ -105,18 +108,54 @@ namespace {
         }
         return vector<pair<uint16_t, CodeAndLength> > ();
     }
+
+    pair<vector<uint16_t>, vector<CodeAndLength> > ReadArchiveAlphabet(Reader& reader) {
+        uint16_t symbol_count = reader.Read9Reversed();
+        if (symbol_count > MAX_SYMBOLS) {
+            throw "Corrupt archive! (too much symbols)";
+        }
+        vector<uint16_t> alphabet;
+        for (uint16_t i = 0; i < symbol_count; ++i) {
+            alphabet.push_back(reader.Read9Reversed()); 
+        }
+        uint16_t symbols_sum = 0;
+        vector<uint16_t> lengths;
+        uint16_t current_length = 1;
+        while (symbols_sum != symbol_count) {
+            if (symbols_sum > symbol_count || reader.IsEOF()) {
+                throw "can not read codes!";
+            }
+            uint16_t count = reader.Read9Reversed();
+            for (uint16_t i = 0; i < count; ++i) {
+                lengths.push_back(current_length);
+                ++symbols_sum;
+            }
+            ++current_length;
+        }
+        vector<CodeAndLength> codes_and_lengths = GenerateCanonicalCodes(lengths);
+        return {alphabet, codes_and_lengths};
+    }
+
+    uint16_t ReadCanonicalCode(Reader& reader, map<CodeAndLength, uint16_t>& code_to_symbol) {
+        uint16_t code = 0;
+        uint16_t length = 0;
+        while (!reader.IsEOF()) {
+            code *= 2;
+            if (reader.Read1()) {
+                ++code;
+            }
+            length++;
+            if (code_to_symbol.count({code, length})) {
+                return code_to_symbol[{code, length}];
+            }
+        }
+        throw "Couldn't decode symbol";
+    }
 }
 
-void Archiver::CompressTo(string compress_path) {
-    size_t i = 0;
-    for (const string& file_path : file_paths_) {
-        CompressOneFile(file_path, compress_path, (i + 1 == file_paths_.size()));
-        ++i;
-    }    
-}
 
 void Archiver::CompressOneFile(const string& file_path, const string& compress_path, bool is_last_file) {
-    vector<pair<uint16_t, CodeAndLength> > canonical_codes = GetCanonicalCodes(file_path);
+    vector<pair<uint16_t, CodeAndLength> > canonical_codes = GetCodesFromData(file_path);
     map<uint16_t, CodeAndLength> code_of_symbol;
     for (auto [symbol, code_and_length] : canonical_codes) {
         code_of_symbol[symbol] = code_and_length;
@@ -155,112 +194,50 @@ void Archiver::CompressOneFile(const string& file_path, const string& compress_p
     writer.Finish();
 }
 
-uint16_t Archiver::ReadSymbol(Reader& reader, unordered_map<string, uint16_t>& code_to_symbol) {
-    string buf;
-    while (!reader.IsEOF()) {
-        buf+='0';
-        if (reader.Read1()) {
-            buf.back()++;
-        }
-        if (code_to_symbol.count(buf)) {
-            return code_to_symbol[buf];
-        }
+void Archiver::DecompressOneFile(const string& decompress_to, Reader& reader) {
+    auto [alphabet, canonical_codes] = ReadArchiveAlphabet(reader);
+    if (alphabet.size() == 0) {
+        return;
     }
-    ErrorHandler::foundError(ErrorHandler::CANT_DECODE_SYMBOL);
-    return 0;
-}
-
-bool Archiver::DecompressOneFile(const string& file_path, Reader& reader) {
-    uint16_t symbol_count = reader.Read9Reversed();
-    if (symbol_count == 0) {
-        return false;
-    } 
-    if (symbol_count > MAX_SYMBOLS) {
-        ErrorHandler::foundError(ErrorHandler::CANT_READ_CODES);
-    }
-    vector<uint16_t> alphabet;
-    for (uint16_t i = 0; i < symbol_count; ++i) {
-        alphabet.push_back(reader.Read9Reversed()); 
-    }
-    uint16_t symbols_sum = 0;
-    vector<uint16_t> symbols_with_size;
-    while (symbols_sum != symbol_count) {
-        if (symbols_sum > symbol_count || reader.IsEOF()) {
-            ErrorHandler::foundError(ErrorHandler::CANT_READ_CODES);
-        }
-        symbols_with_size.push_back(reader.Read9Reversed());
-        symbols_sum += symbols_with_size.back();
-    }
-    uint16_t max_symbol_code_size = symbols_with_size.size();
-    vector<string> canonical_codes;
-    for (size_t i = 0; i < max_symbol_code_size; ++i) {
-        uint16_t symbols = symbols_with_size[i];
-        for (size_t j = 0; j < symbols; ++j) {
-            canonical_codes.push_back("");
-            for (size_t k = 0; k < i+1; ++k) {
-                canonical_codes.back().push_back('0');
-            }
-        }
-    }
-    unordered_map<string, uint16_t> code_to_symbol;
-    for (size_t i = 1; i < canonical_codes.size(); ++i) {
-        size_t prev_size = canonical_codes[i].size();
-        //canonical_codes[i] = Increment(canonical_codes[i-1]);
-        if (canonical_codes[i].size() > prev_size) {
-            //ErrorHandler::foundError(ErrorHandler::CANT_READ_CODES);
-        }
-        while (canonical_codes[i].size() < prev_size) {
-            canonical_codes[i].push_back('0');
-        }
-    }
-
+    map<CodeAndLength, uint16_t> code_to_symbol;
     for (size_t i = 0; i < alphabet.size(); ++i) {
-        code_to_symbol[canonical_codes[i]] = alphabet[i];    
+        code_to_symbol[canonical_codes[i]] = alphabet[i];
     }
     string file_name = "";
     bool found_filename_end = false;
     for (size_t i = 0; i < MAX_FILENAME_LEN; ++i) {
-        uint16_t symbol = ReadSymbol(reader, code_to_symbol);
+        uint16_t symbol = ReadCanonicalCode(reader, code_to_symbol);
         if (symbol == FILENAME_END) {
             found_filename_end = true;
             break;
         }
-        if (symbol >= 256) {
-            ErrorHandler::foundError(ErrorHandler::CANT_DECODE_SYMBOL);
-        } else {
-            file_name += symbol;
-        }
+        file_name += symbol;
     }
     if (!found_filename_end) {
-        ErrorHandler::foundError(ErrorHandler::NO_FILENAME_END);
+        throw "Corrupt archive (couldn't find FILENAME_END symbol)";
     }
-    Writer writer(file_path+PATH_DELIMITER+file_name);
-    bool found_file_end = false;
+    Writer writer(decompress_to+PATH_DELIMITER+file_name);
     while (!reader.IsEOF()) {
-        uint16_t symbol = ReadSymbol(reader, code_to_symbol); 
+        uint16_t symbol = ReadCanonicalCode(reader, code_to_symbol);  
         if (symbol == ONE_MORE_FILE || symbol == ARCHIVE_END) {
-            found_file_end = true;
             break;
         }
-        if (symbol >= 256) {
-            ErrorHandler::foundError(ErrorHandler::CANT_DECODE_SYMBOL);
-        } else {
-            writer.Write8(symbol); 
-        }
-    }
-    if (!found_file_end) {
-        ErrorHandler::foundError(ErrorHandler::NO_FILE_END);
+        writer.Write8(symbol); 
     }
     writer.Finish();
-    return true;
 }
 
-void Archiver::Decompress() { 
-    /*Reader reader(file_path_);
-      while (!reader.IsEOF()) {
-      bool is_not_empty = DecompressOneFile(path, reader);
-      if (!is_not_empty && !reader.IsEOF()) {
-      ErrorHandler::foundError(ErrorHandler::NO_SYMBOLS_IN_FILE);
-      }
-      }*/
+void Archiver::CompressTo(string compress_path) {
+    size_t i = 0;
+    for (const string& file_path : file_paths_) {
+        CompressOneFile(file_path, compress_path, (i + 1 == file_paths_.size()));
+        ++i;
+    }    
+}
+
+void Archiver::Decompress() {
+    Reader reader(file_paths_[0]);
+    while (!reader.IsEOF()) {
+        DecompressOneFile(".", reader);
+    }
 }

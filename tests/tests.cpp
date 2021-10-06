@@ -14,12 +14,12 @@ TEST(MinPriorityQueue, PushAndPop1) {
     q.Push(300, 3);
     q.Push(100, 1);     
     q.Push(200, 1);
-    std::vector<KeyPriority> v;
-    std::vector<KeyPriority> expected = {{100, 1}, {200, 1}, {300, 3}, {500, 5}, {600, 5}};
+    std::vector<std::pair<Key, Priority>> v;
+    std::vector<std::pair<Key, Priority>> expected = {{100, 1}, {200, 1}, {300, 3}, {500, 5}, {600, 5}};
     while (!q.Empty()) {
         v.push_back(q.Top());
-        KeyPriority kp1 = q.Top();
-        KeyPriority kp2 = q.Pop();
+        std::pair<Key, Priority> kp1 = q.Top();
+        std::pair<Key, Priority> kp2 = q.Pop();
         ASSERT_EQ(kp1, kp2);
     }
     ASSERT_EQ(v, expected);
@@ -33,12 +33,12 @@ TEST(MinPriorityQueue, PushAndPop2) {
     q.Push(1, 2);     
     q.Push(2, 1);
     q.Push(228, 0);
-    std::vector<KeyPriority> v;
-    std::vector<KeyPriority> expected = {{228, 0}, {2, 1}, {1, 2}, {3, 3}, {6, 4}, {5, 5}};
+    std::vector<std::pair<Key, Priority>> v;
+    std::vector<std::pair<Key, Priority>> expected = {{228, 0}, {2, 1}, {1, 2}, {3, 3}, {6, 4}, {5, 5}};
     while (!q.Empty()) {
         v.push_back(q.Top());
-        KeyPriority kp1 = q.Top();
-        KeyPriority kp2 = q.Pop();
+        std::pair<Key, Priority> kp1 = q.Top();
+        std::pair<Key, Priority> kp2 = q.Pop();
         ASSERT_EQ(kp1, kp2);
     }
     ASSERT_EQ(v, expected);
@@ -46,20 +46,20 @@ TEST(MinPriorityQueue, PushAndPop2) {
 
 TEST(MinPriorityQueue, PushAndPopMAX) {
     MinPriorityQueue q;
-    std::vector<KeyPriority> expected;
+    std::vector<std::pair<Key, Priority> > expected;
     for (uint16_t i = 0; i < 50000; ++i) {
         expected.push_back({i, i});
     }
     std::reverse(expected.begin(), expected.end());
     for (uint16_t i = 0; i < 50000; ++i) {
-        q.Push(expected[i].key, expected[i].priority);
+        q.Push(expected[i].first, expected[i].second);
     }
     std::reverse(expected.begin(), expected.end());
-    std::vector<KeyPriority> v;
+    std::vector<std::pair<Key, Priority> > v;
     while (!q.Empty()) {
         v.push_back(q.Top());
-        KeyPriority kp1 = q.Top();
-        KeyPriority kp2 = q.Pop();
+        std::pair<Key, Priority> kp1 = q.Top();
+        std::pair<Key, Priority> kp2 = q.Pop();
         ASSERT_EQ(kp1, kp2);
     }
     ASSERT_EQ(v, expected);
@@ -73,7 +73,7 @@ TEST(Trie, AddAndCheck1) {
     trie.AddChild(1, 4);
     trie.AddChild(2, 7);
     trie.AddChild(7, 8);
-    std::vector<std::pair<uint16_t, std::string> > expected = {{3, "00"}, {4, "01"}, {8, "100"}};
+    std::vector<std::pair<uint16_t, uint16_t> > expected = {{3, 2}, {4, 2}, {8, 3}};
     ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
@@ -82,12 +82,8 @@ TEST(Trie, AddAndCheckMAX) {
     for (size_t i = 0; i < 1000; ++i) {
         trie.AddChild(i, i + 1);
     }
-    std::vector<std::pair<uint16_t, std::string> > expected;
-    std::string s;
-    for (uint16_t j = 0; j < 499; ++j) {
-        s += "0";
-    }
-    expected = {{499, s}};
+    std::vector<std::pair<uint16_t, uint16_t> > expected;
+    expected = {{499, 499}};
     ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
@@ -98,7 +94,7 @@ TEST(Reader, ReadBinaryFile) {
         0xCC, 0xCC, 0xCC, 0xCC
     };
 
-    Reader reader("../tests/reader_test1.bin");
+    Reader reader("../tests/mock/reader_test1.bin");
     for (size_t i = 0; i < expected_data.size(); ++i) {
         ASSERT_FALSE(reader.IsEOF());
         auto read_byte = reader.Read8();
@@ -133,7 +129,7 @@ TEST(Writer, WriteOneByte) {
     }
     writer.Finish();
     std::vector<char> p1 = ReadBytes("writer_test1.bin");
-    std::vector<char> p2 = ReadBytes("../tests/writer_ans1.bin");
+    std::vector<char> p2 = ReadBytes("../tests/mock/writer_ans1.bin");
     size_t len1 = p1.size();
     size_t len2 = p2.size();
     ASSERT_EQ(len1, 1);
@@ -151,7 +147,7 @@ TEST(Writer, Write9BitsTwice) {
     writer.Write9(385);
     writer.Finish();
     std::vector<char> p1 = ReadBytes("writer_test2.bin");    
-    std::vector<char> p2 = ReadBytes("../tests/writer_ans2.bin"); 
+    std::vector<char> p2 = ReadBytes("../tests/mock/writer_ans2.bin"); 
     ASSERT_EQ(p1.size(), 3);
     ASSERT_EQ(p2.size(), 3);
     for (size_t i = 0; i < 2; ++i) {
@@ -160,11 +156,9 @@ TEST(Writer, Write9BitsTwice) {
 }
 
 TEST(Archiver, Compress) {
-    Archiver archiver("../tests/a");
-    Writer writer("a_compressed");
-    archiver.CompressTo(writer, true);
-    writer.Finish();
-    Writer wr("../tests/compress_test");
+    Archiver archiver({"../tests/mock/a"});
+    archiver.CompressTo("a_compressed");
+    Writer wr("../tests/mock/compress_test");
     wr.Write9(4);
     wr.Write9(97);
     wr.Write9(258);
@@ -173,17 +167,17 @@ TEST(Archiver, Compress) {
     wr.Write9(1);
     wr.Write9(1);
     wr.Write9(2);
-    wr.WriteAny("0");
-    wr.WriteAny("110");
-    wr.WriteAny("0");
-    wr.WriteAny("0");
-    wr.WriteAny("0");
-    wr.WriteAny("0");
-    wr.WriteAny("0");
-    wr.WriteAny("10");
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0b110, 3);
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0, 1);
+    wr.WriteAny(0b10, 2);
     wr.Finish();
     std::vector<char> p1 = ReadBytes("a_compressed");
-    std::vector<char> p2 = ReadBytes("../tests/compress_test");
+    std::vector<char> p2 = ReadBytes("../tests/mock/compress_test");
     ASSERT_EQ(p1.size(), p2.size());
     for (size_t i = 0; i < p1.size(); ++i) {
         unsigned char u1 = p1[i];
@@ -194,16 +188,13 @@ TEST(Archiver, Compress) {
 
 TEST(Archiver, CompressAndDecompress) {
     std::vector<std::string> names = {"a", "ab", "abc"};
-    Writer writer("compressed.bin");
+    std::vector<std::string> archive_paths = {"../tests/mock/a", "../tests/mock/ab", "../tests/mock/abc"};
+    Archiver archiver(archive_paths);
+    archiver.CompressTo("compressed.bin");
+    Archiver d({"compressed.bin"});
+    d.Decompress();
     for (size_t i = 0; i < names.size(); ++i) {
-        Archiver archiver("../tests/"+names[i]);
-        archiver.CompressTo(writer, (i+1 == names.size()));
-    }
-    writer.Finish();
-    Archiver d("compressed.bin");
-    d.DecompressTo(".");
-    for (size_t i = 0; i < names.size(); ++i) {
-        std::vector<char> v1 = ReadBytes("../tests/"+names[i]);
+        std::vector<char> v1 = ReadBytes("../tests/mock/"+names[i]);
         std::vector<char> v2 = ReadBytes(names[i]);
         ASSERT_EQ(v1.size(), v2.size());
         for (size_t j = 0; j < v1.size(); ++j) {

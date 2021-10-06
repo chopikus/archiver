@@ -11,9 +11,8 @@ add_library(PRIORITY_QUEUE min_priority_queue/min_priority_queue.cpp)
 add_library(TRIE trie/trie.cpp)
 add_library(WRITER writer/writer.cpp)
 add_library(ARCHIVER archiver/archiver.cpp)
-add_library(ERROR_HANDLER error_handler/error_handler.cpp)
 
-target_link_libraries(MAIN ARCHIVER PRIORITY_QUEUE TRIE READER WRITER ERROR_HANDLER)
+target_link_libraries(MAIN ARCHIVER PRIORITY_QUEUE TRIE READER WRITER)
 
 
 # Setup testing
@@ -27,6 +26,6 @@ add_custom_target(tests COMMAND GTEST_COLOR=yes ${CMAKE_CTEST_COMMAND} --verbose
 
 file(GLOB TEST_FILES "tests/*.cpp")
 add_executable("archiver_tests" EXCLUDE_FROM_ALL ${TEST_FILES})
-target_link_libraries("archiver_tests" gtest pthread ARCHIVER PRIORITY_QUEUE TRIE READER WRITER ERROR_HANDLER)
+target_link_libraries("archiver_tests" gtest pthread ARCHIVER PRIORITY_QUEUE TRIE READER WRITER)
 add_dependencies(tests "archiver_tests")
 add_test("archiver_tests" "./archiver_tests")
