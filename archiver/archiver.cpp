@@ -2,6 +2,7 @@
 #include "../error_handler/error_handler.h"
 #include <iostream>
 
+using std::back_inserter;
 using std::map;
 using std::pair;
 using std::sort;
@@ -18,102 +19,140 @@ const uint16_t MAX_SYMBOLS = 259;
 const uint16_t MAX_FILENAME_LEN = 255;
 const char PATH_DELIMITER = '/';
 
-string Increment(string s) {
-    ++s.back();
-    intmax_t i = s.size() - 1;
-    while (i >= 0) {
-        if (s[i] == '2'){
-            s[i] = '0'; 
-            if (i == 0) {
-                s = "1" + s;
-            } else {
-                ++s[i-1];
-            }
-        } else {
-            break;
+Archiver::Archiver(vector<string> file_paths) : file_paths_{file_paths} {};
+
+namespace {
+    struct CodeAndLength {
+        uint16_t code;
+        uint16_t length;
+    };
+    vector<CodeAndLength> GenerateCanonicalCodes(vector<uint16_t> lengths) {
+        if (lengths.size() == 0) {
+            return vector<CodeAndLength>();
         }
-        --i;
+        for (size_t i = 0; i < lengths.size(); ++i) {
+            std::cout << lengths[i] << std::endl;
+        }
+        vector<CodeAndLength> codes_and_lengths;
+        uint16_t code = 0;
+        uint16_t code_length = lengths[0];
+        codes_and_lengths.push_back({code, code_length});
+        for (size_t i = 1; i < lengths.size(); ++i) {
+            ++code;
+            code <<= (lengths[i] - code_length);
+            code_length = lengths[i];
+            codes_and_lengths.push_back({code, code_length});
+        }
+        return codes_and_lengths;
     }
-    return s;
-}
-
-bool CanonicalCompare(const pair<uint16_t, string>& p1, const pair<uint16_t, string>& p2) {
-    if (p1.second.size() != p2.second.size()) {
-        return p1.second.size() < p2.second.size();
+    bool SortBySecond(const std::pair<uint16_t, uint16_t>& p1, const std::pair<uint16_t, uint16_t>& p2) {
+        if (p1.second != p2.second) {
+            return (p1.second < p2.second);
+        } else {
+            return (p1.first < p2.first);
+        }
     }
-    return p1.second < p2.second;
-}
 
-Archiver::Archiver(const std::string& file_path) : file_path_{file_path} {};
-
-void Archiver::CompressTo(Writer& w, bool is_last_file) {
-    map<uint16_t, uint64_t> freqs = GetFrequencies(); 
-    vector<pair<uint16_t, string> > codes;
-    map<uint16_t, string> code_of_symbol;
-
-    MinPriorityQueue q{};
-    Trie trie(TRIE_SIZE);
-    for (auto [symbol, freq] : freqs) {
-        q.Push(symbol, freq);
+    map<uint16_t, uint64_t> GetFrequencies(const string& file_path) {
+        map<uint16_t, uint64_t> result;
+        Reader reader = Reader(file_path);
+        while (!reader.IsEOF()) {
+            uint8_t byte = reader.Read8();
+            ++result[byte];
+        }
+        string file_name = reader.FileName();
+        for (const uint8_t& ch : file_name) {
+            ++result[ch];
+        }
+        ++result[FILENAME_END];
+        ++result[ONE_MORE_FILE];
+        ++result[ARCHIVE_END];
+        return result; 
     }
-    uint16_t v = NEW_VERTEX_START;
-    while (!q.Empty()) {
-        KeyPriority kp = q.Pop();
-        if (q.Empty()) {
-            // root vertex
-            vector<pair<uint16_t, string> > leaves = trie.LeavesFrom(v-1);
-            sort(leaves.begin(), leaves.end(), CanonicalCompare);
-            for (auto& ch : leaves[0].second) {
-                ch = '0';
-            }
-            for (size_t i = 1; i < leaves.size(); ++i) {
-                size_t old_size = leaves[i].second.size();
-                leaves[i].second = Increment(leaves[i - 1].second);
-                while (leaves[i].second.size() < old_size) {
-                    leaves[i].second.push_back('0');
+
+    vector<pair<uint16_t, CodeAndLength> > GetCanonicalCodes(const string& file_path) {
+        map<uint16_t, uint64_t> frequencies = GetFrequencies(file_path);
+        MinPriorityQueue priority_queue{};
+        Trie trie(TRIE_SIZE);
+        for (auto [symbol, freq] : frequencies) {
+            priority_queue.Push(symbol, freq);
+        }
+        uint16_t new_vertex = NEW_VERTEX_START;
+        while (!priority_queue.Empty()) {
+            auto [first_symbol, first_frequency] = priority_queue.Pop(); 
+            if (priority_queue.Empty()) {
+                uint16_t root = new_vertex - 1;
+                vector<pair<uint16_t, uint16_t> > symbols_and_lengths = trie.LeavesFrom(root);
+                vector<uint16_t> lengths;
+                sort(symbols_and_lengths.begin(), symbols_and_lengths.end(), SortBySecond);
+                for (auto [symbol, length] : symbols_and_lengths) {
+                    lengths.push_back(length);
                 }
+                vector<CodeAndLength> codes_and_lengths = GenerateCanonicalCodes(lengths);
+                vector<pair<uint16_t, CodeAndLength> > result;
+                for (size_t i = 0; i < symbols_and_lengths.size(); ++i) {
+                    uint16_t symbol = symbols_and_lengths[i].first;
+                    result.push_back({symbol, codes_and_lengths[i]});
+                }
+                return result;
+            } else {
+                auto [second_symbol, second_frequency] = priority_queue.Pop();
+                trie.AddChild(new_vertex, first_symbol);
+                trie.AddChild(new_vertex, second_symbol);
+                priority_queue.Push(new_vertex, first_frequency + second_frequency);
+                ++new_vertex;
             }
-            for (auto [number, path] : leaves) {
-                code_of_symbol[number] = path;
-            } 
-            codes = leaves;
-            break;
-        } else {
-            KeyPriority kp2 = q.Pop();
-            trie.AddChild(v, kp.key);
-            trie.AddChild(v, kp2.key);
-            q.Push(v, kp.priority + kp2.priority);
-            ++v;
         }
+        return vector<pair<uint16_t, CodeAndLength> > ();
     }
-    w.Write9(static_cast<uint16_t>(freqs.size()));
-    for (auto [symbol, path] : codes) {
-        w.Write9(symbol);
+}
+
+void Archiver::CompressTo(string compress_path) {
+    size_t i = 0;
+    for (const string& file_path : file_paths_) {
+        CompressOneFile(file_path, compress_path, (i + 1 == file_paths_.size()));
+        ++i;
+    }    
+}
+
+void Archiver::CompressOneFile(const string& file_path, const string& compress_path, bool is_last_file) {
+    vector<pair<uint16_t, CodeAndLength> > canonical_codes = GetCanonicalCodes(file_path);
+    map<uint16_t, CodeAndLength> code_of_symbol;
+    for (auto [symbol, code_and_length] : canonical_codes) {
+        code_of_symbol[symbol] = code_and_length;
     }
+    Writer writer(compress_path);
+    writer.Write9(canonical_codes.size());
     map<uint16_t, uint16_t> codes_with_size;
     uint16_t max_symbol_code_size = 0;
-    for (auto& [symbol, code] : codes) {
-        ++codes_with_size[code.size()];
-        max_symbol_code_size = std::max(max_symbol_code_size, static_cast<uint16_t>(code.size()));
+    for (auto& [symbol, code] : canonical_codes) {
+        writer.Write9(symbol);
+        ++codes_with_size[code.length];
+        max_symbol_code_size = std::max(max_symbol_code_size, code.length);
     }
     for (uint16_t i = 1; i <= max_symbol_code_size; ++i) {
-        w.Write9(codes_with_size[i]);
+        writer.Write9(codes_with_size[i]);
     }
-    Reader reader = Reader(file_path_);
+    Reader reader = Reader(file_path);
     string file_name = reader.FileName();
     for (char& ch : file_name) {
-        w.WriteAny(code_of_symbol[ch]);
+        writer.WriteAny(code_of_symbol[ch].code, code_of_symbol[ch].length);
     }
-    w.WriteAny(code_of_symbol[FILENAME_END]); 
+    CodeAndLength file_name_end = code_of_symbol[FILENAME_END];
+    CodeAndLength archive_end = code_of_symbol[ARCHIVE_END];
+    CodeAndLength one_more_file = code_of_symbol[ONE_MORE_FILE]; 
+
+    writer.WriteAny(file_name_end.code, file_name_end.length); 
     while (!reader.IsEOF()) {
         uint8_t byte = reader.Read8();
-        w.WriteAny(code_of_symbol[byte]);
+        writer.WriteAny(code_of_symbol[byte].code, code_of_symbol[byte].length);
     }
     if (is_last_file) {
-        w.WriteAny(code_of_symbol[ARCHIVE_END]);
+        writer.WriteAny(archive_end.code, archive_end.length);
     } else {
-        w.WriteAny(code_of_symbol[ONE_MORE_FILE]);
-    }
+        writer.WriteAny(one_more_file.code, one_more_file.length);
+    } 
+    writer.Finish();
 }
 
 uint16_t Archiver::ReadSymbol(Reader& reader, unordered_map<string, uint16_t>& code_to_symbol) {
@@ -166,15 +205,15 @@ bool Archiver::DecompressOneFile(const string& file_path, Reader& reader) {
     unordered_map<string, uint16_t> code_to_symbol;
     for (size_t i = 1; i < canonical_codes.size(); ++i) {
         size_t prev_size = canonical_codes[i].size();
-        canonical_codes[i] = Increment(canonical_codes[i-1]);
+        //canonical_codes[i] = Increment(canonical_codes[i-1]);
         if (canonical_codes[i].size() > prev_size) {
-            ErrorHandler::foundError(ErrorHandler::CANT_READ_CODES);
+            //ErrorHandler::foundError(ErrorHandler::CANT_READ_CODES);
         }
         while (canonical_codes[i].size() < prev_size) {
             canonical_codes[i].push_back('0');
         }
     }
-    
+
     for (size_t i = 0; i < alphabet.size(); ++i) {
         code_to_symbol[canonical_codes[i]] = alphabet[i];    
     }
@@ -216,29 +255,12 @@ bool Archiver::DecompressOneFile(const string& file_path, Reader& reader) {
     return true;
 }
 
-void Archiver::DecompressTo(const std::string& path) { 
-    Reader reader(file_path_);
-    while (!reader.IsEOF()) {
-        bool is_not_empty = DecompressOneFile(path, reader);
-        if (!is_not_empty && !reader.IsEOF()) {
-            ErrorHandler::foundError(ErrorHandler::NO_SYMBOLS_IN_FILE);
-        }
-    }
-}
-
-map<uint16_t, uint64_t> Archiver::GetFrequencies() {
-    map<uint16_t, uint64_t> result;
-    Reader reader = Reader(file_path_);
-    while (!reader.IsEOF()) {
-        uint8_t byte = reader.Read8();
-        ++result[byte];
-    }
-    string file_name = reader.FileName();
-    for (const uint8_t& ch : file_name) {
-        ++result[ch];
-    }
-    ++result[FILENAME_END];
-    ++result[ONE_MORE_FILE];
-    ++result[ARCHIVE_END];
-    return result; 
+void Archiver::Decompress() { 
+    /*Reader reader(file_path_);
+      while (!reader.IsEOF()) {
+      bool is_not_empty = DecompressOneFile(path, reader);
+      if (!is_not_empty && !reader.IsEOF()) {
+      ErrorHandler::foundError(ErrorHandler::NO_SYMBOLS_IN_FILE);
+      }
+      }*/
 }
