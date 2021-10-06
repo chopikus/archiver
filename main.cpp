@@ -15,7 +15,7 @@ void ShowHelpAndExit() {
 
 pair<bool, vector<string> > ParseArguments(int argc, char* argv[]) {
     if (argc == 1) {
-        ErrorHandler::foundError(ErrorHandler::NO_ARGUMENTS);
+        throw "no arguments were provided!";
         return {false, vector<string>()};
     } else {
         vector<string> result;
