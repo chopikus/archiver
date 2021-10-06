@@ -1,7 +1,6 @@
 #include <cstring>
 #include <iostream>
 #include <unordered_map>
-#include "error_handler/error_handler.h"
 #include "archiver/archiver.h"
 #include "writer/writer.h"
 
