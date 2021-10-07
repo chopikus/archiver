@@ -26,3 +26,7 @@ build_asan
 compile_commands.json
 CMakeFiles/
 *.swp
+build_release/
+build_debug/
+release/
+debug/

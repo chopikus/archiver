@@ -21,7 +21,7 @@ bool Reader::IsEOF() {
 }
 
 uint8_t Reader::Read8() {
-    uint8_t result;
+    uint8_t result = 0;
     for (size_t i = 0; i < 8; ++i) {
         result *= 2;
         result += Read1();
@@ -30,7 +30,7 @@ uint8_t Reader::Read8() {
 }
 
 uint16_t Reader::Read9Reversed() {
-    uint16_t result;
+    uint16_t result = 0;
     for (size_t i = 0; i < 8; ++i) {
         result *= 2;
         result += Read1();
