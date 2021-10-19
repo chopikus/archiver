@@ -5,9 +5,7 @@ class Reader {
     public:
         Reader(const std::string& file_path);
         
-        bool Read1();
-        uint16_t Read9Reversed();
-        uint8_t Read8();
+        uint16_t Read(const uint8_t bit_count);
         std::string FileName() const;
         size_t FileSize();        
         bool IsEOF();
@@ -17,7 +15,7 @@ class Reader {
         std::string file_path_;
         size_t file_size_ = 0;
         size_t bytes_read_ = 0;
-        uint8_t buf_;
-        size_t buf_pos_ = 8; 
-        unsigned char ReadByte();
+        uint16_t buffer_ = 0;
+        size_t available_bits_ = 0; 
+        bool ReadByte();
 };

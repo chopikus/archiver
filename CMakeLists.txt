@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(archiver)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -O2")
 
 add_executable(MAIN main.cpp)
 

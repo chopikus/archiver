@@ -43,7 +43,7 @@ namespace {
         map<uint16_t, uint64_t> result;
         Reader reader = Reader(file_path);
         while (!reader.IsEOF()) {
-            uint8_t byte = reader.Read8();
+            uint8_t byte = reader.Read(8);
             ++result[byte];
         }
         string file_name = reader.FileName();
@@ -110,13 +110,13 @@ namespace {
     }
 
     pair<vector<uint16_t>, vector<CodeAndLength> > ReadArchiveAlphabet(Reader& reader) {
-        uint16_t symbol_count = reader.Read9Reversed();
+        uint16_t symbol_count = reader.Read(9);
         if (symbol_count > MAX_SYMBOLS) {
             throw "Corrupt archive! (too much symbols)";
         }
         vector<uint16_t> alphabet;
         for (uint16_t i = 0; i < symbol_count; ++i) {
-            alphabet.push_back(reader.Read9Reversed()); 
+            alphabet.push_back(reader.Read(9));
         }
         uint16_t symbols_sum = 0;
         vector<uint16_t> lengths;
@@ -125,7 +125,7 @@ namespace {
             if (symbols_sum > symbol_count || reader.IsEOF()) {
                 throw "can not read codes!";
             }
-            uint16_t count = reader.Read9Reversed();
+            uint16_t count = reader.Read(9);
             for (uint16_t i = 0; i < count; ++i) {
                 lengths.push_back(current_length);
                 ++symbols_sum;
@@ -136,12 +136,13 @@ namespace {
         return {alphabet, codes_and_lengths};
     }
 
+    
     uint16_t ReadCanonicalCode(Reader& reader, map<CodeAndLength, uint16_t>& code_to_symbol) {
         uint16_t code = 0;
         uint16_t length = 0;
         while (!reader.IsEOF()) {
             code *= 2;
-            if (reader.Read1()) {
+            if (reader.Read(1)) {
                 ++code;
             }
             length++;
@@ -151,45 +152,69 @@ namespace {
         }
         throw "Couldn't decode symbol";
     }
-}
+    
+    inline uint16_t Reverse2Byte(uint16_t a)
+    {
+        uint16_t b = a % (1 << 8);
+        uint8_t c = a;
+        c >>= 8;
+        b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+        b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+        b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+        b <<= 8;
+        c = (c & 0xF0) >> 4 | (c & 0x0F) << 4;
+        c = (c & 0xCC) >> 2 | (c & 0x33) << 2;
+        c = (c & 0xAA) >> 1 | (c & 0x55) << 1;
+        b += c;
+        return b;
+    }
 
+    CodeAndLength ReverseCanonicalCode(const CodeAndLength& code_and_length) {
+        uint16_t code = code_and_length.code;
+        code = Reverse2Byte(code);
+        code >>= (16 - code_and_length.length);
+        return {code, code_and_length.length};
+    }
+}
 
 void Archiver::CompressOneFile(const string& file_path, Writer& writer, bool is_last_file) {
     vector<pair<uint16_t, CodeAndLength> > canonical_codes = GetCodesFromData(file_path);
     map<uint16_t, CodeAndLength> code_of_symbol;
-    for (auto [symbol, code_and_length] : canonical_codes) {
-        code_of_symbol[symbol] = code_and_length;
+    for (auto& [symbol, code_and_length] : canonical_codes) {
+        code_of_symbol[symbol] = ReverseCanonicalCode(code_and_length);
+        // because of the ridiculously stupid file format given in the task statement,
+        // we need to reverse canonical code to write it in BIG endian
     }
-    writer.Write9(canonical_codes.size());
+    writer.Write(canonical_codes.size(), 9);
     map<uint16_t, uint16_t> codes_with_size;
     uint16_t max_symbol_code_size = 0;
     for (auto& [symbol, code] : canonical_codes) {
-        writer.Write9(symbol);
+        writer.Write(symbol, 9);
         ++codes_with_size[code.length];
         max_symbol_code_size = std::max(max_symbol_code_size, code.length);
     }
     for (uint16_t i = 1; i <= max_symbol_code_size; ++i) {
-        writer.Write9(codes_with_size[i]);
+        writer.Write(codes_with_size[i], 9);
     }
     Reader reader = Reader(file_path);
     string file_name = reader.FileName();
     for (char& ch : file_name) {
-        writer.WriteAny(code_of_symbol[ch].code, code_of_symbol[ch].length);
+        writer.Write(code_of_symbol[ch].code, code_of_symbol[ch].length);
     }
     CodeAndLength file_name_end = code_of_symbol[FILENAME_END];
     CodeAndLength archive_end = code_of_symbol[ARCHIVE_END];
     CodeAndLength one_more_file = code_of_symbol[ONE_MORE_FILE]; 
 
-    writer.WriteAny(file_name_end.code, file_name_end.length); 
+    writer.Write(file_name_end.code, file_name_end.length); 
     while (!reader.IsEOF()) {
-        uint8_t byte = reader.Read8();
-        writer.WriteAny(code_of_symbol[byte].code, code_of_symbol[byte].length);
+        uint8_t byte = reader.Read(8);
+        writer.Write(code_of_symbol[byte].code, code_of_symbol[byte].length);
     }
     if (is_last_file) {
-        writer.WriteAny(archive_end.code, archive_end.length);
+        writer.Write(archive_end.code, archive_end.length);
     } else {
-        writer.WriteAny(one_more_file.code, one_more_file.length);
-    } 
+        writer.Write(one_more_file.code, one_more_file.length);
+    }
 }
 
 void Archiver::DecompressOneFile(const string& decompress_to, Reader& reader) {
@@ -220,7 +245,7 @@ void Archiver::DecompressOneFile(const string& decompress_to, Reader& reader) {
         if (symbol == ONE_MORE_FILE || symbol == ARCHIVE_END) {
             break;
         }
-        writer.Write8(symbol); 
+        writer.Write(symbol, 8); 
     }
     writer.Finish();
 }

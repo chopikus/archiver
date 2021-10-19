@@ -87,20 +87,54 @@ TEST(Trie, AddAndCheckMAX) {
     ASSERT_EQ(expected, trie.LeavesFrom(0));
 }
 
-TEST(Reader, ReadBinaryFile) {
-    const std::vector<unsigned char> expected_data = {
-        0xAA, 0xAA, 0xAA, 0xAA,
-        0xBB, 0xBB, 0xBB, 0xBB,
-        0xCC, 0xCC, 0xCC, 0xCC
+TEST(Reader, ReadByBit) {
+    const std::vector<bool> expected_data = {
+        1,0,0,0,0,0,0,0,
+        1,1,0,0,0,0,0,0,
+        1,1,1,0,0,0,0,0,
+        1,0,0,0,0,0,0,0,
+        0,1,0,0,0,0,0,0 
     };
-
-    Reader reader("../tests/mock/reader_test1.bin");
+    Reader reader("../tests/mock/reader_test_bit.bin");
     for (size_t i = 0; i < expected_data.size(); ++i) {
         ASSERT_FALSE(reader.IsEOF());
-        auto read_byte = reader.Read8();
+        auto read_byte = reader.Read(1);
         ASSERT_EQ(read_byte, expected_data[i]);
     }
+    ASSERT_TRUE(reader.IsEOF());
+}
 
+TEST(Reader, ReadByMultipleBits) {
+    const std::vector<uint16_t> expected_data = {
+        257, 385, 1
+    };
+    const std::vector<uint8_t> data_sizes = {
+        9, 9, 6
+    };
+    ASSERT_TRUE(data_sizes.size() == expected_data.size());
+    Reader reader("../tests/mock/reader_test_multiple.bin");
+    for (size_t i = 0; i < expected_data.size(); ++i) {
+        ASSERT_FALSE(reader.IsEOF());
+        auto read_byte = reader.Read(data_sizes[i]);
+        ASSERT_EQ(read_byte, expected_data[i]);
+    }
+    ASSERT_TRUE(reader.IsEOF());
+}
+
+TEST(Reader, ReadBytes) {
+    const std::vector<uint16_t> expected_data = {
+        1, 3, 7
+    };
+    const std::vector<uint8_t> data_sizes = {
+        8, 8, 8
+    };
+    ASSERT_TRUE(data_sizes.size() == expected_data.size());
+    Reader reader("../tests/mock/reader_test_multiple.bin");
+    for (size_t i = 0; i < expected_data.size(); ++i) {
+        ASSERT_FALSE(reader.IsEOF());
+        auto read_byte = reader.Read(data_sizes[i]);
+        ASSERT_EQ(read_byte, expected_data[i]);
+    }
     ASSERT_TRUE(reader.IsEOF());
 }
 
@@ -125,29 +159,30 @@ std::vector<char> ReadBytes(std::string file_path) {
 TEST(Writer, WriteOneByte) {
     Writer writer("writer_test1.bin");
     for (size_t i = 0; i < 8; ++i) {
-        writer.Write1(i < 4);   
+        writer.Write(i < 4, 1);
     }
     writer.Finish();
     std::vector<char> p1 = ReadBytes("writer_test1.bin");
-    std::vector<char> p2 = ReadBytes("../tests/mock/writer_ans1.bin");
+    std::vector<char> p2 = ReadBytes("../tests/mock/writer_test_bit.bin");
     size_t len1 = p1.size();
     size_t len2 = p2.size();
     ASSERT_EQ(len1, 1);
     ASSERT_EQ(len2, 1);
     unsigned char b1 = p1[0];
     unsigned char b2 = p2[0];
-    ASSERT_EQ(b1, 240);
-    ASSERT_EQ(b2, 240);
+    ASSERT_EQ(b1, 15);
+    ASSERT_EQ(b2, 15);
     ASSERT_EQ(b1, b2);
 }
 
 TEST(Writer, Write9BitsTwice) {
     Writer writer("writer_test2.bin");
-    writer.Write9(257);
-    writer.Write9(385);
+    writer.Write(257, 9);
+    writer.Write(385, 9);
+    writer.Write(1, 6);
     writer.Finish();
-    std::vector<char> p1 = ReadBytes("writer_test2.bin");    
-    std::vector<char> p2 = ReadBytes("../tests/mock/writer_ans2.bin"); 
+    std::vector<char> p1 = ReadBytes("writer_test2.bin");
+    std::vector<char> p2 = ReadBytes("../tests/mock/writer_test_multiple.bin"); 
     ASSERT_EQ(p1.size(), 3);
     ASSERT_EQ(p2.size(), 3);
     for (size_t i = 0; i < 2; ++i) {
@@ -159,22 +194,22 @@ TEST(Archiver, Compress) {
     Archiver archiver({"../tests/mock/a"});
     archiver.CompressTo("a_compressed");
     Writer wr("../tests/mock/compress_test");
-    wr.Write9(4);
-    wr.Write9(97);
-    wr.Write9(258);
-    wr.Write9(256);
-    wr.Write9(257);
-    wr.Write9(1);
-    wr.Write9(1);
-    wr.Write9(2);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0b110, 3);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0, 1);
-    wr.WriteAny(0b10, 2);
+    wr.Write(4, 9);
+    wr.Write(97, 9);
+    wr.Write(258, 9);
+    wr.Write(256, 9);
+    wr.Write(257, 9);
+    wr.Write(1, 9);
+    wr.Write(1, 9);
+    wr.Write(2, 9);
+    wr.Write(0, 1);
+    wr.Write(0b011, 3); // 110 in big endian
+    wr.Write(0, 1);
+    wr.Write(0, 1);
+    wr.Write(0, 1);
+    wr.Write(0, 1);
+    wr.Write(0, 1);
+    wr.Write(0b01, 2); // 10 in big endian
     wr.Finish();
     std::vector<char> p1 = ReadBytes("a_compressed");
     std::vector<char> p2 = ReadBytes("../tests/mock/compress_test");

@@ -1,12 +1,5 @@
 #include "reader.h"
 
-unsigned char Reverse(unsigned char b) {
-    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-    return b;
-}
-
 Reader::Reader(const std::string& file_path) : file_(file_path, std::ios::binary | std::ios::ate), file_path_{file_path} {
     if (file_.tellg() != -1) {
         file_size_ = file_.tellg();
@@ -17,49 +10,31 @@ Reader::Reader(const std::string& file_path) : file_(file_path, std::ios::binary
 }
 
 bool Reader::IsEOF() {
-    return (bytes_read_ >= file_size_ && buf_pos_ == 8);
+    return (bytes_read_ >= file_size_ && available_bits_ == 0);
 }
 
-uint8_t Reader::Read8() {
-    uint8_t result = 0;
-    for (size_t i = 0; i < 8; ++i) {
-        result *= 2;
-        result += Read1();
+bool Reader::ReadByte() {
+    if (bytes_read_ < file_size_) {
+        uint8_t byte = 0;
+        file_.read(reinterpret_cast<char*>(&byte), 1);
+        ++bytes_read_;
+        buffer_ += (byte << available_bits_);
+        available_bits_ += 8;
+        return true;
     }
+    return false;
+}
+
+uint16_t Reader::Read(const uint8_t bit_count) {
+    while (available_bits_ < bit_count) {
+        if (!ReadByte()) {
+            available_bits_ = bit_count;
+        }
+    }
+    uint16_t result = buffer_ % (1 << bit_count);
+    available_bits_ -= bit_count;
+    buffer_ >>= bit_count;
     return result;
-}
-
-uint16_t Reader::Read9Reversed() {
-    uint16_t result = 0;
-    for (size_t i = 0; i < 8; ++i) {
-        result *= 2;
-        result += Read1();
-    }
-    uint16_t reversed_result = Read1();
-    reversed_result <<= 8;
-    return reversed_result + Reverse(result);
-}
-
-unsigned char Reader::ReadByte() {
-    char buffer;
-    if (file_.fail()) {
-        throw "Read error!";
-    }
-    file_.read(&buffer, 1);
-    ++bytes_read_;
-
-    return buffer;
-}
-
-bool Reader::Read1() {
-    if (buf_pos_ < 8) {
-        return (buf_ >> (7 - buf_pos_++)) & 1;
-    } else if (bytes_read_ < file_size_) {
-        buf_ =  ReadByte();
-        buf_pos_ = 1;
-        return (buf_ >> 7) & 1;
-    } else
-        return false;
 }
 
 std::string Reader::FileName() const {

@@ -8,13 +8,10 @@
 class Writer {
     public:
         Writer(const std::string& file_path);
-        void Write1(bool b);
-        void Write8(uint8_t u);
-        void Write9(uint16_t u);
-        void WriteAny(uint16_t code, uint16_t length);
+        void Write(uint16_t code, uint8_t length);
         void Finish();
     private:
         std::ofstream os_;
-        uint8_t buf_ = 0;
-        uint8_t buf_pos_ = 0;
+        uint32_t buffer_ = 0;
+        uint8_t bits_in_buffer_ = 0;
 };
