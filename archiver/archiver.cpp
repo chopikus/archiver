@@ -156,7 +156,7 @@ namespace {
     inline uint16_t Reverse2Byte(uint16_t a)
     {
         uint16_t b = a % (1 << 8);
-        uint8_t c = a;
+        uint16_t c = a;
         c >>= 8;
         b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
         b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
