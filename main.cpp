@@ -65,16 +65,5 @@ int main(int argc, char* argv[]) {
             std::cerr << "ERROR: " << e << std::endl;
         }
     }
-    /*try{
-    std::vector<std::string> names = {"a"};//, "ab", "abc"};
-    std::vector<std::string> archive_paths = {"../tests/mock/a"};//, "../tests/mock/ab", "../tests/mock/abc"};
-    Archiver archiver(archive_paths);
-    archiver.CompressTo("compressed.bin");
-    Archiver d({"compressed.bin"});
-    d.Decompress();
-    }
-    catch (const char* e){
-         std::cerr << "ERROR: " << e << std::endl;
-    }*/
     return 0;
 }
