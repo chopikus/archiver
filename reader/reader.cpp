@@ -1,6 +1,12 @@
 #include "reader.h"
 
+namespace {
+const size_t read_buffer_size = 256 * 1024;
+char read_buffer[read_buffer_size];
+}  // namespace
+
 Reader::Reader(const std::string& file_path) : file_(file_path, std::ios::binary | std::ios::ate), file_path_{file_path} {
+    file_.rdbuf()->pubsetbuf(read_buffer, read_buffer_size); 
     if (file_.tellg() != -1) {
         file_size_ = file_.tellg();
     } else {
