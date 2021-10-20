@@ -9,7 +9,7 @@ Being written in C++ and using [Huffman coding techinque](https://en.wikipedia.o
 2. Open the cloned folder -- `cd archiver`.
 3. Create new folder for building the tool, and open it -- `mkdir build && cd build`.
 4. Run the following command: `cmake .. && make`. 
-After that the file named `archiver` should appear.
+After that the executable file named `archiver` should appear.
 
 ## Usage
 * `archiver -c ARCHIVE file1 [file2...]` -- compress files `file1`, `file2`, ... into an archive named `ARCHIVE`;
