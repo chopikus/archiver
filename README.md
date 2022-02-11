@@ -33,8 +33,13 @@ Testing compression of book "War and Peace" written by Leo Tolstoy.
 * Decompressing time -- ? (speed: ?)
 ## Details
 ### Running tests
-TODO
+1. Clone this repository -- `git clone https://github.com/chopikus/archiver.git`.
+2. Open the cloned folder -- `cd archiver`.
+3. Create new folder for running tests, and open it -- `mkdir build && cd build`.
+4. Run the following command: `cmake .. && make tests`. 
+
 ### Optimizations
 TODO
+
 ### File format
 TODO
