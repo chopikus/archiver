@@ -1,5 +1,5 @@
 # archiver 📁
-`archiver` is a compressing/decompressing tool made for educational purposes (specifically, it was a hometask given at a C++ course in the [HSE](https://www.hse.ru/en/) university).
+`archiver` is a compressing/decompressing tool made for educational purposes.
 
 Being written in C++ and using [Huffman coding techinque](https://en.wikipedia.org/wiki/Huffman_coding) for data compression, this tool uses extremely small amount of RAM, while having pretty decent compressing/decompressing speeds.
 
