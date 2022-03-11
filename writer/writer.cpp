@@ -4,7 +4,7 @@ using std::ofstream;
 using std::string;
 
 namespace {
-const size_t bufsize = 256*1024;
+const size_t bufsize = 256 * 1024;
 char write_buf[bufsize];
 };  // namespace
 
