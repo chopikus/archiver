@@ -5,6 +5,7 @@ Being written in C++ and using [Huffman coding techinque](https://en.wikipedia.o
 
 `archiver` can be used as an every-day tool, however it requires some attention from the end-user. (just like the `dd` command 😉).
 ## Installation
+0. Requirements: `make`, `CMake`, `GTest`.
 1. Clone this repository -- `git clone https://github.com/chopikus/archiver.git`.
 2. Open the cloned folder -- `cd archiver`.
 3. Create new folder for building the tool, and open it -- `mkdir build && cd build`.
@@ -33,6 +34,7 @@ Testing compression of book "War and Peace" written by Leo Tolstoy.
 * Decompressing time -- ? (speed: ?)
 ## Details
 ### Running tests
+0. Requirements: `make`, `CMake`, `GTest`.
 1. Clone this repository -- `git clone https://github.com/chopikus/archiver.git`.
 2. Open the cloned folder -- `cd archiver`.
 3. Create new folder for running tests, and open it -- `mkdir build && cd build`.
